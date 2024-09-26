@@ -25,8 +25,8 @@ apt upgrade -y
 
 dpkg -l | grep ustreamer || apt install ustreamer -y
 
-
-pip3 install flask
+sudo apt install python3-pip -y
+sudo apt install python3-flask -y
 #Make cams launch on startup
 crontab -l > crontab_new
 echo "@reboot /usr/bin/python3 /home/pi/rang24-25/picamera/server.py" >> crontab_new

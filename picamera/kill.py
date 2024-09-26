@@ -5,13 +5,14 @@ def killCameras():
     try:
 
         toKill = getProcesses()
+        print(toKill)
         if len(toKill) == 0:
             print("No cameras to kill")
             return "None"
         for pid in toKill:
             subprocess.run(["kill", "-9", pid])
             print(f"Killed process with PID: {pid}")
-            return "Done"
+        return "Done"
 
     except Exception as e:
         print(f"An error occurred: {e}")

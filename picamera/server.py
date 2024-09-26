@@ -41,6 +41,7 @@ def killCameras():
 
 @app.route("/startup", methods=["POST"])
 def startup():
+    kill.killCameras()
     cameras.startup()
     return jsonify({"status": "done"})
 
