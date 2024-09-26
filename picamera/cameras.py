@@ -3,35 +3,26 @@ import subprocess
 import logging
 
 videos = ["0", "2", "4", "6"]
-ports = []
-for x in videos:
-    # v4l2-ctl --all -d /dev/video0
-    command = "/dev/video" + x
-    try:
-        output = subprocess.check_output(
-            ["v4l2-ctl", "--all", "-d", command], text=True
+resolution = [("1280", "720"), ("640", "480"), ("1280", "720"), ("640", "480")]
+
+
+def startup():
+    for i in range(len(videos)):
+
+        p = subprocess.Popen(
+            [
+                "bash",
+                "camrun.sh",
+                videos[i],
+                resolution[i][0],
+                resolution[i][1],
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
-    except subprocess.CalledProcessError as e:
-        logging.error("Error: " + str(e))
-        continue
-    # output = subprocess.check_output(["v4l2-ctl", "--all", "-d", command], text=True)
+        print(p.pid)
 
-    ports.append(x)
 
-print(ports)
-
-for port in ports:
-
-    p = subprocess.Popen(
-        [
-            "bash",
-            "camrun.sh",
-            port,
-            "640",
-            "480",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    print(p.pid)
-    print("PORTTTT")
+if __name__ == "__main__":
+    startup()
+    print("Done")

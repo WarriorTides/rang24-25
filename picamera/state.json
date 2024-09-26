@@ -1,0 +1,24 @@
+{
+    "cameras": {
+        "0": {
+            "video port": 0,
+            "height": 720,
+            "width": 1280
+        },
+        "2": {
+            "video port": 2,
+            "height": 480,
+            "width": 640
+        },
+        "4": {
+            "video port": 4,
+            "height": 720,
+            "width": 1280
+        },
+        "6": {
+            "video port": 6,
+            "height": 480,
+            "width": 640
+        }
+    }
+}
