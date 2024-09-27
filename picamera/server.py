@@ -2,13 +2,14 @@ from flask import Flask, jsonify
 import kill
 import cameras
 
-# impot state.json file
+import os
 import json
 
 # read state.json file
-with open("state.json") as f:
-    data = json.load(f)
-    print(data)
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+statepath = str(os.path.join(dir_path, "state.json"))
+print(statepath)
 
 
 app = Flask(__name__)
@@ -22,7 +23,7 @@ def hello_world():
 # get State of cameras in json
 @app.route("/state", methods=["POST", "GET"])
 def get_state():
-    with open("state.json") as f:
+    with open(statepath) as f:
         data = json.load(f)
         print(data)
         return jsonify(data)

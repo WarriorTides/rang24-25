@@ -1,21 +1,30 @@
 import os
 import subprocess
-import logging
+import json
 
-videos = ["0", "2", "4", "6"]
-resolution = [("1280", "720"), ("640", "480"), ("1280", "720"), ("640", "480")]
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+statepath = str(os.path.join(dir_path, "state.json"))
+camrunpath = str(os.path.join(dir_path, "camrun.sh"))
+
+with open(statepath) as f:
+    data = json.load(f)
+    # print(data)
+
+for i in data["cameras"]:
+    print(i)
 
 
 def startup():
-    for i in range(len(videos)):
+    for i in data["cameras"]:
 
         p = subprocess.Popen(
             [
                 "bash",
-                "camrun.sh",
-                videos[i],
-                resolution[i][0],
-                resolution[i][1],
+                camrunpath,
+                data["cameras"][i]["video port"],
+                data["cameras"][i]["width"],
+                data["cameras"][i]["height"],
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -23,6 +32,6 @@ def startup():
         print(p.pid)
 
 
-if __name__ == "__main__":
-    startup()
-    print("Done")
+# if __name__ == "__main__":
+#     startup()
+#     print("Done")
