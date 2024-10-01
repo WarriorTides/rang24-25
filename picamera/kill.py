@@ -10,7 +10,7 @@ def killCameras():
             print("No cameras to kill")
             return "None"
         for pid in toKill:
-            subprocess.run(["kill", "-9", pid])
+            subprocess.run(["kill", "-9", str(pid)])
             print(f"Killed process with PID: {pid}")
         return "Done"
 
