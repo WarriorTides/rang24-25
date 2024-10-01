@@ -21,7 +21,7 @@ def startup():
         p = subprocess.Popen(
             [
                 "bash",
-                camrunpath,
+                str(camrunpath),
                 data["cameras"][i]["video port"],
                 data["cameras"][i]["width"],
                 data["cameras"][i]["height"],
