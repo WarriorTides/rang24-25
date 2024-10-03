@@ -1,7 +1,7 @@
 import os
 import subprocess
 import json
-
+from kill import getProcesses, killCameras,killPID
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 statepath = str(os.path.join(dir_path, "state.json"))
@@ -14,22 +14,34 @@ with open(statepath) as f:
 for i in data["cameras"]:
     print(i)
 
+# print(camrun)
+# def singleCam(index):
+#     processes=getProcesses()
+#     for i in processes:
+#         if i[1] 
+#     return "Done"
 
 def startup():
+    port=8000
     for i in data["cameras"]:
-
-        p = subprocess.Popen(
-            [
+        
+        command=[
                 "bash",
                 str(camrunpath),
-                data["cameras"][i]["video port"],
-                data["cameras"][i]["width"],
-                data["cameras"][i]["height"],
-            ],
+                str(i["video port"]),
+                str(i["width"]),
+                str(i["height"]),
+                str(i["fps"]),
+                str(port)
+            ]
+        print(command)
+        p = subprocess.Popen(
+            command,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
         print(p.pid)
+        port+=1
 
 
 # if __name__ == "__main__":

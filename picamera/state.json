@@ -1,24 +1,28 @@
 {
-    "cameras": {
-        "0": {
-            "video port": 0,
+    "cameras": [
+        {
+            "video port": "/dev/video0",
             "height": 720,
-            "width": 1280
+            "width": 1280,
+            "fps": 25
         },
-        "2": {
-            "video port": 2,
+        {
+            "video port": "/dev/video2",
             "height": 480,
-            "width": 640
+            "width": 640,
+            "fps": 25
         },
-        "4": {
-            "video port": 4,
+        {
+            "video port": "/dev/video4",
             "height": 720,
-            "width": 1280
+            "width": 1280,
+            "fps": 25
         },
-        "6": {
-            "video port": 6,
+        {
+            "video port": "/dev/video6",
             "height": 480,
-            "width": 640
+            "width": 640,
+            "fps": 25
         }
-    }
+    ]
 }
