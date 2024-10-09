@@ -28,3 +28,6 @@ function kill() {
   });
 }
 
+function getCams() {
+  
+}
