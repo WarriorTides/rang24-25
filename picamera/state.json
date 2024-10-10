@@ -6,7 +6,7 @@
             "width": 1280,
             "fps": 25,
             "stream port": 8000,
-            "brightness": "default",
+            "brightness": 2100,
             "contrast": "default",
             "saturation": "default",
             "hue": "default",
