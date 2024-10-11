@@ -26,23 +26,32 @@ def getProcesses():
         processes = result.stdout.decode().splitlines()
 
         toKill = []
-        command=[]
+        command = []
         for process in processes:
             if "ustreamer" in process:
                 temp = process.split()
                 pid = temp[1]
-                
-                toKill.append((pid,[item for item in temp if "video" in item][0], temp[temp.index([item for item in temp if "port" in item][0])+1]))
-            
+
+                toKill.append(
+                    (
+                        pid,
+                        [item for item in temp if "video" in item][0],
+                        temp[
+                            temp.index([item for item in temp if "port" in item][0]) + 1
+                        ],
+                        str(process),
+                    ),
+                )
 
         # toKill = toKill[:4]
         return toKill
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
 def killPID(pid):
     try:
-    
+
         subprocess.run(["kill", "-9", str(pid)])
         print(f"Killed process with PID: {pid}")
         return "Done"

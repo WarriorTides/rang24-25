@@ -14,28 +14,10 @@
     <h1 style="text-align:center;">MJPEG Streams</h1>
     <button onclick="startup()">Startup Cameras</button>
     <button onclick="kill()">Kill Cameras</button>
+    <button onclick="getCams()">Get Cameras</button>
 
-    <div class="stream-container">
-        <div class="stream">
-            <label for="checkbox1">Stream 1</label>
-            <input type="checkbox" id="checkbox1" onclick="toggleStream('stream1', 'http://127.0.0.1:8000/stream')">
-            <img id="stream1" src="" alt="Stream 1" style="display:none;">
-        </div>
-        <div class="stream">
-            <label for="checkbox2">Stream 2</label>
-            <input type="checkbox" id="checkbox2" onclick="toggleStream('stream2', 'http://127.0.0.1:8001/stream')">
-            <img id="stream2" src="" alt="Stream 2" style="display:none;">
-        </div>
-        <div class="stream">
-            <label for="checkbox3">Stream 3</label>
-            <input type="checkbox" id="checkbox3" onclick="toggleStream('stream3', 'http://127.0.0.1:8002/stream')">
-            <img id="stream3" src="" alt="Stream 3" style="display:none;">
-        </div>
-        <div class="stream">
-            <label for="checkbox4">Stream 4</label>
-            <input type="checkbox" id="checkbox4" onclick="toggleStream('stream4', 'http://127.0.0.1:8003/stream')">
-            <img id="stream4" src="" alt="Stream 4" style="display:none;">
-        </div>
+    <div id="stream-container" class="stream-container">
+
     </div>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
