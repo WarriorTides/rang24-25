@@ -14,7 +14,7 @@ function toggleStream(streamId, url) {
 // function
 
 function startup() {
-  fetch('http://sharis.local/startup', {
+  fetch('http://127.0.0.1/startup', {
     method: 'POST'
   }).then((response) => {
     console.log(response)
@@ -23,7 +23,7 @@ function startup() {
 }
 
 function kill() {
-  fetch('http://sharis.local/killCameras', {
+  fetch('http://127.0.0.1/killCameras', {
     method: 'POST'
   });
 }
