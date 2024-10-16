@@ -47,6 +47,18 @@ def startup():
     return jsonify({"status": "done"})
 
 
+@app.route("/killSingle/<int:pid>", methods=["POST"])
+def kill_single(pid):
+    kill.killPID(pid)
+    return jsonify({"status": "done"})
+
+
+@app.route("/startSingle/<int:id>", methods=["POST"])
+def starte_Sinlge(id):
+    cameras.singleCam(id)
+    return jsonify({"status": "done"})
+
+
 @app.route("/update-camera/<int:id>", methods=["PATCH"])
 def update_camera(id):
 

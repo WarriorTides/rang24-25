@@ -15,12 +15,70 @@ with open(statepath) as f:
 for i in data["cameras"]:
     print(i)
 
+
 # print(camrun)
-# def singleCam(index):
-#     processes=getProcesses()
-#     for i in processes:
-#         if i[1]
-#     return "Done"
+def singleCam(index):
+    with open(statepath) as f:
+        data = json.load(f)
+    processes = getProcesses()
+    for i in processes:
+
+        if i[1] == data["cameras"][index]["video port"]:
+            killPID(i[0])
+    i = data["cameras"][index]
+    command = [
+        "ustreamer",
+        "--device",
+        str(i["video port"]),
+        "--resolution",
+        f'{str(i["width"])}x{str(i["height"])}',
+        "--format",
+        "MJPEG",
+        "--desired-fps",
+        str(i["fps"]),
+        "-l",
+        "--encoder",
+        "HW",
+        "--host",
+        "::",
+        "--port",
+        str(i["stream port"]),
+        "--brightness",
+        str(i["brightness"]),
+        "--contrast",
+        str(i["contrast"]),
+        "--saturation",
+        str(i["saturation"]),
+        "--hue",
+        str(i["hue"]),
+        "--gamma",
+        str(i["gamma"]),
+        "--sharpness",
+        str(i["sharpness"]),
+        "--backlight-compensation",
+        str(i["backlight compensation"]),
+        "--white-balance",
+        str(i["white balance"]),
+        "--gain",
+        str(i["gain"]),
+        "--color-effect",
+        str(i["color effect"]),
+        "--rotate",
+        str(i["rotate"]),
+        "--flip-vertical",
+        str(i["flip vertical"]),
+        "--flip-horizontal",
+        str(i["flip horizontal"]),
+    ]
+
+    print(command)
+    p = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    print(p.pid)
+    return "Done"
 
 
 def startup():
