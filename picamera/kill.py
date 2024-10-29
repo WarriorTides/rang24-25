@@ -1,5 +1,9 @@
 import subprocess
+import os
+import json
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
+statepath = str(os.path.join(dir_path, "state.json"))
 
 def killCameras():
     try:
@@ -59,6 +63,16 @@ def killPID(pid):
     except Exception as e:
         print(f"An error occurred: {e}")
         return "Error" + str(e)
+
+
+def killIndex(index):
+    print(index)
+    with open(statepath) as f:
+        data = json.load(f)
+    processes=getProcesses()
+    for i in processes:
+        if i[1] == data["cameras"][index]["video port"] :
+            killPID(i[0])
 
 
 if __name__ == "__main__":
