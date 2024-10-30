@@ -1,6 +1,6 @@
 import socket
 import time
-
+import subprocess
 # Define the IP address and port of the Arduino
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
@@ -9,7 +9,16 @@ arduino_port = 8888
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Bind the socket to a specific network interface and port number
-sock.bind(("192.168.1.204", arduino_port))
+command = "ifconfig | grep 192 |awk '/inet/ {print $2; exit}' "
+result = subprocess.run(
+    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+)
+device_ip = ""
+if result.returncode == 0:
+    device_ip = result.stdout.strip()
+else:
+    print(f"Command failed with error: {result.stderr}")
+sock.bind((device_ip, arduino_port))
 
 # The message to send
 
