@@ -4,18 +4,19 @@
 
 #include <Servo.h>
 
-dataStorage datastore;
 
 EthernetUDP udp;
 
-#define THRUSTER_COUNT = 8
-#define SERVO_COUNT = 4
+const int THRUSTER_COUNT = 8;
+const int SERVO_COUNT = 4;
+const int ACTUATOR_ONE = 23;
+const int ACTUATOR_TWO = 24;
 
 Servo thrusters[THRUSTER_COUNT];
 const byte thrusterPins[] = {6, 8, 10, 12, 2, 4, 14, 16};
 const byte servoPins[] = {9, 5, 7, 3};
 bool enabled = false;
-int servoAngles[] = {90, 90, 90, 90}
+int servoAngles[] = {90, 90, 90, 90};
 // cosnt
 Servo servos[SERVO_COUNT];
 
@@ -64,7 +65,7 @@ void loop()
 
             char command = msg[0];
             String data = String(msg).substring(2);
-            sendData = String(msg)
+            sendData = String(msg);
 
                 if (command == 'c')
             {
