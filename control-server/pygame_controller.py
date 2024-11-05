@@ -5,7 +5,7 @@ from flask import Flask
 import pygame
 from pygame.locals import *
 import subprocess
-import power_comp
+# import power_comp
 
 import os
 import socketio
@@ -13,18 +13,26 @@ import socketio
 
 sio = socketio.Client()
 
+isConnected = False
+
 
 @sio.event
 def connect():
+    global isConnected
+    isConnected = True
     print("I'm connected!")
 
 
 @sio.event
 def disconnect():
+    global isConnected
+    isConnected = False
     print("I'm disconnected!")
 
 
-SEND_UDP = True
+USE_SOCKET = False
+    
+
 ROV_MAX_AMPS = 25
 MAX_TROTTLE = 0.5
 RUN_THRUSTER = True
@@ -94,13 +102,13 @@ def formatMessage(message):
 class mainProgram(object):
     def init(self):
         pygame.init()
-        self.curcam = 1
-        self.runpid = False
-        self.camval = [60, 70, 95]
+        # self.curcam = 1
+        # self.runpid = False
+        # self.camval = [60, 70, 95]
         self.runJoy = True
         self.maxThrottle = MAX_TROTTLE
         self.curMessage = ""
-        self.wrist = 0  # 0 is flat 1 is vertical
+        # self.wrist = 0  # 0 is flat 1 is vertical
 
         self.lastaxes = []
         self.lastbuttons = []
@@ -120,18 +128,18 @@ class mainProgram(object):
         self.buttoncount = self.joystick.get_numbuttons()
         self.axes = [0.0] * self.axiscount
         self.buttons = [0] * self.buttoncount
-        sio.emit("joystick", "Power:" + str(self.maxThrottle))
-        sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
-        # get all trhustures that have a O in the name and get array of indexes
-        upthrust = [item["index"] for item in mapping if "I" in item["name"]]
-        # set curmessage to t, comma seprated indexes of upthrust
-        self.curMessage = "t," + ",".join(str(x) for x in upthrust)
-        print(self.curMessage)
-        self.sendUDP()
+        if isConnected:
+            sio.emit("joystick", "Power:" + str(self.maxThrottle))
+            sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
 
-        self.curMessage = "p,550,9,1"
-        print(self.curMessage)
-        self.sendUDP()
+        # # get all trhustures that have a O in the name and get array of indexes
+        # upthrust = [item["index"] for item in mapping if "I" in item["name"]]
+        # # set curmessage to t, comma seprated indexes of upthrust
+        # self.curMessage = "t," + ",".join(str(x) for x in upthrust)
+        # print(self.curMessage)
+        # sio.emit("UDP", str(self.curMessage))
+        
+
 
         # Find out the best window size
 
@@ -149,34 +157,6 @@ class mainProgram(object):
                     self.buttons[event.button] = 0
                 elif event.type == JOYBUTTONDOWN:
                     self.buttons[event.button] = 1
-                elif event.type == SOCKETEVENT:
-                    print("Socket event: " + str(event.message))
-                    if event.message == "STATUS":
-                        sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
-                        time.sleep(0.1)
-                        sio.emit("joystick", "Power:" + str(self.maxThrottle))
-                    if "PIDOFF" in event.message:
-                        self.runpid = False
-                        self.curMessage = "f"
-                        self.sendUDP()
-                        self.control()
-                    if "PIDON" in event.message:
-                        self.runpid = True
-                        self.curMessage = "n"
-                        self.sendUDP()
-                        self.control()
-                    if "Power:" in event.message:
-                        self.maxThrottle = float(event.message.split(":")[1])
-                        print("Power: " + str(self.maxThrottle))
-                    if "c" in event.message:
-                        self.runJoy = False
-                        self.curMessage = event.message
-                        self.sendUDP()
-                    if "xy" in event.message:
-                        self.curMessage = event.message
-                        self.sendUDP()
-                    if event.message == "RUN":
-                        self.runJoy = True
 
             for i in range(len(self.axes)):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
@@ -210,25 +190,7 @@ class mainProgram(object):
 
     def control(self):
         # print("Control")
-        if RUN_THRUSTER:
-            if self.buttons[2] == 1:  # square button
-                self.runpid = not self.runpid
-                if self.runpid:
-                    self.curMessage = "n"
-                    print("Running PID")
-                else:
-                    self.curMessage = "f"
-                    print("Stopping PID")
-                self.sendUDP()
-        if (
-            self.axes[-2] == 1 and not self.maxThrottle == 0.3
-        ):  # left trigger is index: 5
-
-            self.maxThrottle = 0.3
-            sio.emit("joystick", "Power:" + str(self.maxThrottle))
-        elif self.axes[-2] == -1 and not self.maxThrottle == 0.50:
-            self.maxThrottle = 0.50
-            sio.emit("joystick", "Power:" + str(self.maxThrottle))
+           
 
         sway = -self.axes[2]  # right stick left right
 
@@ -256,90 +218,8 @@ class mainProgram(object):
             "axes": self.axes,
             "buttons": self.buttons,
         }
-        # print(con)
-        combinedthrust = {
-            "IFL": heave - roll + pitch,
-            "OFR": surge - yaw - sway,
-            "OFL": surge + yaw + sway,
-            "IBL": heave - roll - pitch,
-            "IBR": heave + roll - pitch,
-            "IFR": heave + roll + pitch,
-            "OBR": surge - yaw + sway,
-            "OBL": surge + yaw - sway,
-        }
-        combined = [0] * 8
-        for key, value in combinedthrust.items():
-            combined[mapping_dict[key]] = value
 
-        # Step 3: Extract the values from the sorted items to create the final array
-        # final_array = list(sorted_combinedthrust)
-
-        # print(final_array)
-
-        # forward,right,up are positive
-        # cr
-        max_motor = max(abs(x) for x in combined)
-        max_input = max(
-            abs(surge), abs(sway), abs(heave), abs(yaw), abs(pitch), abs(roll)
-        )
-        if max_motor == 0:
-            max_motor = 1
-        for i, t in enumerate(combined):
-            combined[i] = mapnum(
-                (t / max_motor * max_input),
-                1500
-                - (
-                    400 * self.maxThrottle
-                ),  # multiply 400 by maxtrhottle if u want that
-                1500 + (400 * self.maxThrottle),
-            )
-
-        combined = power_comp.calcnew(combined, ROV_MAX_AMPS)
-
-        # wrist: button[1]  claw: axes[-1]
-        if self.buttons[1] == 1:  # circle button
-            self.wrist += 1
-            if self.wrist > 1:
-                self.wrist = 0
-
-        if not SEND_UDP:
-            sio.emit("joystick", str(controlData))
-        # prin()
-        self.curMessage = formatMessage(combined) + ","
-        if self.buttons[3] == 1:  # triangle button
-            self.curcam += 1
-            if self.curcam > 2:
-                self.curcam = 0
-        self.curMessage += str(self.camval[self.curcam])
-
-        if self.wrist == 1:  # wristh is cicle button
-            self.curMessage += ",51"
-        else:
-            self.curMessage += ",144"
-        if self.axes[-1] == 1:
-            self.curMessage += ",16"
-        else:
-            self.curMessage += ",130"
-
-        self.sendUDP()
-
-    # angularx = self.axes[4]
-
-    def sendUDP(self):
-        if SEND_UDP:
-            sock.sendto(self.curMessage.encode(), ARDUINO_DEVICE)
-            print(f"Sent: {self.curMessage}")
-            print("Waiting for response...")
-            sock.settimeout(1.0)  # Set the timeout to  1 second
-            try:
-                data, server = sock.recvfrom(8888)
-                sio.emit("joystick", str(data.decode()))
-                print(f"Received: {data.decode()}")
-            except socket.timeout:
-                print("No response received within  1 second.")
-        # else:
-        #     sio.emit("joystick", self.curMessage)
-
+   
     def quit(self, status=0):
         pygame.quit()
         sys.exit(status)
@@ -348,14 +228,11 @@ class mainProgram(object):
 def runJoyStick():
     global sock
     # sio.connect("http://localhost:5001")
-    sio.connect("http://localhost:5001", transports=["websocket"])
+    if USE_SOCKET:
+        sio.connect("http://localhost:5001", transports=["websocket"])
 
     # sio.wait()
 
-    if SEND_UDP:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        sock.bind((device_ip, arduino_port))
 
     try:
         program = mainProgram()
@@ -365,13 +242,10 @@ def runJoyStick():
 
     except KeyboardInterrupt:
         pygame.quit()
-        if SEND_UDP:
-            sock.close()
-
+    
     finally:
         pygame.quit()
-        if SEND_UDP:
-            sock.close()
+
 
 
 if __name__ == "__main__":

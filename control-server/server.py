@@ -3,7 +3,7 @@ import threading
 
 import pygame
 import pygame_controller
-import getPID
+
 
 # Setup Flask and SocketIO
 from flask import Flask
@@ -28,9 +28,7 @@ def sendMsg(msg):
 
 @socketio.on("message")
 def handle_message(data):
-    # print("received message: " + str(data))
-    #
-    # sendMsg(str(data))
+
     pygame.event.post(pygame.event.Event(pygame_controller.SOCKETEVENT, message=data))
 
 
@@ -39,10 +37,10 @@ def handle_message(data):
     print("received message: " + str(data))
     send(str(data), broadcast=True)
 
-
-@socketio.on("camera")
+@socketio.on("UDP")
 def handle_message(data):
-    print("received camera IP: " + str(data))
+    print("received message: " + str(data))
+    send(str(data), broadcast=True)
 
 
 @socketio.on("connect")
