@@ -14,7 +14,7 @@ import socketio
 
 sio = socketio.Client()
 
-isConnected = False
+isConnected = True
 
 
 @sio.event
@@ -31,7 +31,7 @@ def disconnect():
     print("I'm disconnected!")
 
 
-USE_SOCKET = False
+USE_SOCKET = True
 
 
 ROV_MAX_AMPS = 25
@@ -198,8 +198,10 @@ class mainProgram(object):
             "axes": self.axes,
             "buttons": self.buttons,
         }
+        # print(controlData)
 
-        sio.emit("UDP", controlData)
+        if USE_SOCKET:
+            sio.emit("UDP", controlData)
 
     def quit(self, status=0):
         pygame.quit()
@@ -207,6 +209,7 @@ class mainProgram(object):
 
 
 def runJoyStick():
+
 
     if USE_SOCKET:
         sio.connect("http://localhost:5001", transports=["websocket"])

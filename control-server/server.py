@@ -4,6 +4,7 @@ import subprocess
 import threading
 import pygame
 import pygame_controller
+import json
 
 # Setup Flask and SocketIO
 from flask import Flask
@@ -33,6 +34,10 @@ def sendMsg(msg):
     socketio.emit("message", msg)
     print("Sent: " + str(msg))
 
+@app.route("/")
+def home():
+    return "Server is running!"
+
 
 @socketio.on("message")
 def handle_message(data):
@@ -42,20 +47,20 @@ def handle_message(data):
 
 
 @socketio.on("joystick")
-def handle_message(data):
+def handle_joystick_message(data):
     print("received message: " + str(data))
     send(str(data), broadcast=True)
 
 
 @socketio.on("UDP")
-def handle_message(data):
+def handle_udp_message(data):
     print("received message: " + str(data))
     if data == "connect":
         sock.bind((device_ip, arduino_port))
     elif data == "disconnect":
         sock.close()
     else:
-        sent = sock.sendto(data.encode(), (arduino_ip, arduino_port))
+        sent = sock.sendto(json.dumps(data).encode(), (arduino_ip, arduino_port))
         time.sleep(0.00001)
         print("Waiting for response...")
         try:
@@ -68,13 +73,13 @@ def handle_message(data):
 
 
 @socketio.on("connect")
-def handle_message():
+def handle_connect():
     print("connected")
     # send("connected", broadcast=True)
 
 
 @socketio.on("disconnect")
-def handle_message():
+def handle_disconnect():
     print("disconnected")
     # send("disconnected", broadcast=True)
 
@@ -86,4 +91,4 @@ if __name__ == "__main__":
     # pid_thread = threading.Thread(target=getPID.runStuff)
     # pid_thread.start()
     time.sleep(3)
-    # pygame_controller.runJoyStick()
+    pygame_controller.runJoyStick()
