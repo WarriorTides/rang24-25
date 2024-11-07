@@ -4,11 +4,7 @@ import subprocess
 import threading
 import pygame
 import pygame_controller
-import json
-
-# Setup Flask and SocketIO
 from flask import Flask
-
 from flask_socketio import SocketIO, send
 
 app = Flask(__name__)
@@ -24,6 +20,8 @@ result = subprocess.run(
     command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
 )
 device_ip = ""
+ARDUINO_DEVICE = (arduino_ip, arduino_port)
+RUN_PYGAME = False
 
 
 def runSocket():
@@ -34,6 +32,7 @@ def sendMsg(msg):
     socketio.emit("message", msg)
     print("Sent: " + str(msg))
 
+
 @app.route("/")
 def home():
     return "Server is running!"
@@ -41,35 +40,50 @@ def home():
 
 @socketio.on("message")
 def handle_message(data):
-
-    pygame.event.post(pygame.event.Event(pygame_controller.SOCKETEVENT, message=data))
-    print("received message: " + str(data))
+    if RUN_PYGAME:
+        pygame.event.post(
+            pygame.event.Event(pygame_controller.SOCKETEVENT, message=data)
+        )
+    print("received message: message  " + str(data))
 
 
 @socketio.on("joystick")
 def handle_joystick_message(data):
-    print("received message: " + str(data))
+    print("received message: joystick " + str(data))
     send(str(data), broadcast=True)
 
 
 @socketio.on("UDP")
 def handle_udp_message(data):
-    print("received message: " + str(data))
+    print("received message: UDP" + str(data))
     if data == "connect":
-        sock.bind((device_ip, arduino_port))
+        try:
+            sock.bind(ARDUINO_DEVICE)
+            print("Socket connected")
+            send("Socket connected", broadcast=True)
+        except Exception as e:
+            print("Error connecting to socket")
+            print(e)
+            send(f"Error connecting to socket: {e}", broadcast=True)
     elif data == "disconnect":
         sock.close()
+        print("Socket closed")
+        send("Socket closed", broadcast=True)
     else:
-        sent = sock.sendto(json.dumps(data).encode(), (arduino_ip, arduino_port))
-        time.sleep(0.00001)
-        print("Waiting for response...")
-        try:
-            data, server = sock.recvfrom(3578)
-            print(f"Received: {data.decode()}")
-        except socket.timeout:
-            print("No response received")
+        if sock is not None:
+            sock.sendto(data.encode(), ARDUINO_DEVICE)
+            print(f"Sent: {data}")
+            print("Waiting for response...")
+            sock.settimeout(0.5)  # Set the timeout to  1 second
+            try:
+                data, server = sock.recvfrom(8888)
+                print(f"Received: {data.decode()}")
+                send(f"Received: {data.decode()}", broadcast=True)
+            except socket.timeout:
+                print("No response received within  1 second.")
+                send("No response received within  1 second.", broadcast=True)
 
-    send(str(data), broadcast=True)
+    # send(str(data), broadcast=True)
 
 
 @socketio.on("connect")
@@ -91,4 +105,5 @@ if __name__ == "__main__":
     # pid_thread = threading.Thread(target=getPID.runStuff)
     # pid_thread.start()
     time.sleep(3)
-    pygame_controller.runJoyStick()
+    if RUN_PYGAME:
+        pygame_controller.runJoyStick()
