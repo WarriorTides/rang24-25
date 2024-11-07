@@ -5,6 +5,7 @@ from flask import Flask
 import pygame
 from pygame.locals import *
 import subprocess
+
 # import power_comp
 
 import os
@@ -31,7 +32,7 @@ def disconnect():
 
 
 USE_SOCKET = False
-    
+
 
 ROV_MAX_AMPS = 25
 MAX_TROTTLE = 0.5
@@ -102,17 +103,9 @@ def formatMessage(message):
 class mainProgram(object):
     def init(self):
         pygame.init()
-        # self.curcam = 1
-        # self.runpid = False
-        # self.camval = [60, 70, 95]
-        self.runJoy = True
-        self.maxThrottle = MAX_TROTTLE
-        self.curMessage = ""
-        # self.wrist = 0  # 0 is flat 1 is vertical
 
         self.lastaxes = []
         self.lastbuttons = []
-
         pygame.joystick.init()
 
         self.joycount = pygame.joystick.get_count()
@@ -127,21 +120,8 @@ class mainProgram(object):
         self.axiscount = self.joystick.get_numaxes()
         self.buttoncount = self.joystick.get_numbuttons()
         self.axes = [0.0] * self.axiscount
+        self.runJoy = True
         self.buttons = [0] * self.buttoncount
-        if isConnected:
-            sio.emit("joystick", "Power:" + str(self.maxThrottle))
-            sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
-
-        # # get all trhustures that have a O in the name and get array of indexes
-        # upthrust = [item["index"] for item in mapping if "I" in item["name"]]
-        # # set curmessage to t, comma seprated indexes of upthrust
-        # self.curMessage = "t," + ",".join(str(x) for x in upthrust)
-        # print(self.curMessage)
-        # sio.emit("UDP", str(self.curMessage))
-        
-
-
-        # Find out the best window size
 
     def run(self):
         print("Running")
@@ -151,12 +131,13 @@ class mainProgram(object):
                 if event.type == QUIT:
                     pygameRunning = False
                 elif event.type == JOYAXISMOTION:
-                    # print("Axis: " + str(event.axis) + " Value: " + str(event.value))
                     self.axes[event.axis] = event.value
                 elif event.type == JOYBUTTONUP:
                     self.buttons[event.button] = 0
                 elif event.type == JOYBUTTONDOWN:
                     self.buttons[event.button] = 1
+                elif event.type == SOCKETEVENT:
+                    print("Socket event: " + str(event.message))
 
             for i in range(len(self.axes)):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
@@ -169,8 +150,7 @@ class mainProgram(object):
                 self.lastaxes = list(self.axes)
                 self.lastbuttons = list(self.buttons)
                 # print("ME SEES A CHANGE")
-                # print("Axes: " + str(self.axes) + " Buttons: " + str(self.buttons))
-                # print()
+
                 if self.runJoy:
                     self.control()
             # time.sleep(0.1)
@@ -190,13 +170,12 @@ class mainProgram(object):
 
     def control(self):
         # print("Control")
-           
 
         sway = -self.axes[2]  # right stick left right
 
         heave = self.axes[3]  # right stick up down
-        # x button for pich and roll
 
+        # x button for pich and roll
         if self.buttons[0] == 0:  # x button
 
             surge = self.axes[1]
@@ -208,6 +187,7 @@ class mainProgram(object):
             yaw = 0
             roll = -self.axes[0]
             pitch = self.axes[1]
+
         controlData = {
             "surge": surge,
             "sway": sway,
@@ -219,20 +199,17 @@ class mainProgram(object):
             "buttons": self.buttons,
         }
 
-   
+        sio.emit("UDP", controlData)
+
     def quit(self, status=0):
         pygame.quit()
         sys.exit(status)
 
 
 def runJoyStick():
-    global sock
-    # sio.connect("http://localhost:5001")
+
     if USE_SOCKET:
         sio.connect("http://localhost:5001", transports=["websocket"])
-
-    # sio.wait()
-
 
     try:
         program = mainProgram()
@@ -242,10 +219,9 @@ def runJoyStick():
 
     except KeyboardInterrupt:
         pygame.quit()
-    
+
     finally:
         pygame.quit()
-
 
 
 if __name__ == "__main__":
