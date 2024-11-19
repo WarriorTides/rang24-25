@@ -4,27 +4,26 @@
 
 #include <Servo.h>
 
-
 EthernetUDP udp;
 
 const int THRUSTER_COUNT = 8;
 const int SERVO_COUNT = 4;
-const int ACTUATOR_COUNT=2;
+const int ACTUATOR_COUNT = 2;
 
-int RIGHT_RPWM = 50;   
+int RIGHT_RPWM = 50;
 int RIGHT_LPWM = 51;
-int LEFT_RPWM = 1;   
+int LEFT_RPWM = 1;
 int LEFT_LPWM = 2;
 int sensorPin1 = A0;
 int sensorPin2 = A1;
 
 int sensorVal1, sensorVal2;
-int Speed = 255;  
-float strokeLength = 4.0;  
+int Speed = 255;
+float strokeLength = 4.0;
 float extensionLength1, extensionLength2;
-float targetPositionInches1 = 2.0; 
-float targetPositionInches2 = 3.0; 
-float errorTolerance = 0.05;  
+float targetPositionInches1 = 2.0;
+float targetPositionInches2 = 3.0;
+float errorTolerance = 0.05;
 
 int maxAnalogReading = 1023;
 int minAnalogReading = 0;
@@ -63,7 +62,6 @@ void setup()
     pinMode(sensorPin1, INPUT);
     pinMode(sensorPin2, INPUT);
 
-
     uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
     Ethernet.begin(mac, IPAddress(192, 168, 1, 151));
 
@@ -86,7 +84,6 @@ void loop()
     controlActuator(extensionLength1, targetPositionInches1, RIGHT_RPWM, RIGHT_LPWM);
     controlActuator(extensionLength2, targetPositionInches2, LEFT_RPWM, LEFT_LPWM);
 
-
     // check for new udp-packet:
     int size = udp.parsePacket();
     if (size > 0)
@@ -101,10 +98,10 @@ void loop()
             String data = String(msg).substring(2);
             sendData = String(msg);
 
-                if (command == 'c')
+            if (command == 'c')
             {
                 // Convert String into an Int Array that contains microseconds for all 8 thrusters and Servo Angles
-                int output[THRUSTER_COUNT + SERVO_COUNT+ACTUATOR_COUNT];
+                int output[THRUSTER_COUNT + SERVO_COUNT + ACTUATOR_COUNT];
                 boolean done = false;
                 int i = 0;
                 while (!done)
@@ -137,8 +134,8 @@ void loop()
                     servos[i].write(output[i + THRUSTER_COUNT]);
                 }
 
-                targetPositionInches1=output[THRUSTER_COUNT + SERVO_COUNT];
-                targetPositionInches2=output[THRUSTER_COUNT + SERVO_COUNT + 1];
+                targetPositionInches1 = output[THRUSTER_COUNT + SERVO_COUNT] / 100;
+                targetPositionInches2 = output[THRUSTER_COUNT + SERVO_COUNT + 1] / 100;
             }
 
             else if (command == 's')
@@ -188,9 +185,6 @@ void loop()
 
         success = udp.endPacket();
 
-
-
-
         // Serial.print(("endPacket: "));
         // Serial.println(success ? "success" : "failed");
 
@@ -203,43 +197,49 @@ void loop()
     }
 }
 
-float mapfloat(float x, float inputMin, float inputMax, float outputMin, float outputMax) {
+float mapfloat(float x, float inputMin, float inputMax, float outputMin, float outputMax)
+{
     return (x - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
 
+void controlActuator(float extensionLength, float targetPosition, int RPWM, int LPWM)
+{
+    float error = abs(extensionLength - targetPosition);
 
-void controlActuator(float extensionLength, float targetPosition, int RPWM, int LPWM) {
-  float error = abs(extensionLength - targetPosition);
-
-  if (error <= errorTolerance) {
-    driveActuator(0, 0, RPWM, LPWM);
-    Serial.println("Stopped");
-  } 
-  else if (extensionLength < targetPosition) {
-    driveActuator(1, Speed, RPWM, LPWM); 
-    Serial.println("Extending...");
-  } 
-  else if (extensionLength > targetPosition) {
-    driveActuator(-1, Speed, RPWM, LPWM);
-    Serial.println("Retracting...");
-  }
+    if (error <= errorTolerance)
+    {
+        driveActuator(0, 0, RPWM, LPWM);
+        Serial.println("Stopped");
+    }
+    else if (extensionLength < targetPosition)
+    {
+        driveActuator(1, Speed, RPWM, LPWM);
+        Serial.println("Extending...");
+    }
+    else if (extensionLength > targetPosition)
+    {
+        driveActuator(-1, Speed, RPWM, LPWM);
+        Serial.println("Retracting...");
+    }
 }
 
-void driveActuator(int Direction, int Speed, int RPWM, int LPWM) {
-  switch (Direction) {
+void driveActuator(int Direction, int Speed, int RPWM, int LPWM)
+{
+    switch (Direction)
+    {
     case 1:
-      analogWrite(RPWM, Speed);
-      analogWrite(LPWM, 0);
-      break;
-   
+        analogWrite(RPWM, Speed);
+        analogWrite(LPWM, 0);
+        break;
+
     case 0:
-      analogWrite(RPWM, 0);
-      analogWrite(LPWM, 0);
-      break;
+        analogWrite(RPWM, 0);
+        analogWrite(LPWM, 0);
+        break;
 
     case -1:
-      analogWrite(RPWM, 0);
-      analogWrite(LPWM, Speed);
-      break;
-  }
+        analogWrite(RPWM, 0);
+        analogWrite(LPWM, Speed);
+        break;
+    }
 }
