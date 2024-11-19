@@ -1,27 +1,20 @@
 import socket
 import time
-import subprocess
 import threading
 import pygame
 import pygame_controller
 from flask import Flask
 from flask_socketio import SocketIO, send
+from settings import *
+import settings
+import utils
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app, cors_allowed_origins="*")
-
-arduino_ip = "192.168.1.151"
-arduino_port = 8888
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-command = "ifconfig | grep 192 |awk '/inet/ {print $2; exit}' "
-result = subprocess.run(
-    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-)
-device_ip = ""
-ARDUINO_DEVICE = (arduino_ip, arduino_port)
-RUN_PYGAME = False
+device_ip = utils.get_ip()
 
 
 def runSocket():
@@ -36,6 +29,15 @@ def sendMsg(msg):
 @app.route("/")
 def home():
     return "Server is running!"
+
+
+@socketio.on("settings")
+def handle_settings(data):
+    print("received message: settings " + str(data))
+    if data == "servo":
+        send(servo_controlers, broadcast=True)
+    elif data == "mapping":
+        send(mapping, broadcast=True)
 
 
 @socketio.on("message")
@@ -55,9 +57,11 @@ def handle_joystick_message(data):
 
 @socketio.on("UDP")
 def handle_udp_message(data):
-    print("received message: UDP" + str(data))
+    print("UPD received message: " + str(data))
+    data = str(data)
     if data == "connect":
         try:
+            settings.RUN_SOCKET = True
             sock.bind(ARDUINO_DEVICE)
             print("Socket connected")
             send("Socket connected", broadcast=True)
@@ -66,11 +70,12 @@ def handle_udp_message(data):
             print(e)
             send(f"Error connecting to socket: {e}", broadcast=True)
     elif data == "disconnect":
+        settings.RUN_SOCKET = False
         sock.close()
         print("Socket closed")
         send("Socket closed", broadcast=True)
     else:
-        if sock is not None:
+        if settings.RUN_SOCKET == True:
             sock.sendto(data.encode(), ARDUINO_DEVICE)
             print(f"Sent: {data}")
             print("Waiting for response...")
@@ -104,6 +109,6 @@ if __name__ == "__main__":
     socketio_thread.start()
     # pid_thread = threading.Thread(target=getPID.runStuff)
     # pid_thread.start()
-    time.sleep(3)
+    time.sleep(1)
     if RUN_PYGAME:
         pygame_controller.runJoyStick()

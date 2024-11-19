@@ -5,11 +5,16 @@ from flask import Flask
 import pygame
 from pygame.locals import *
 import subprocess
-
-# import power_comp
-
 import os
 import socketio
+from settings import *
+import parseinput
+
+# env vars to make joystik work in background
+os.environ["SDL_VIDEO_ALLOW_SCREENSAVER"] = "1"
+os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
+os.environ["SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
+os.environ["SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR"] = "0"
 
 
 sio = socketio.Client()
@@ -32,72 +37,8 @@ def disconnect():
 
 
 USE_SOCKET = True
-
-
-ROV_MAX_AMPS = 25
-MAX_TROTTLE = 0.5
-RUN_THRUSTER = True
-arduino_ip = "192.168.1.151"
-arduino_port = 8888
-ARDUINO_DEVICE = (arduino_ip, arduino_port)
 SOCKETEVENT = pygame.event.custom_type()
-mapping = [
-    {"name": "OFL", "color": "gray", "index": 2, "posIndex": 0, "rightpad": 2},
-    {"name": "OFR", "color": "cyan", "index": 0, "posIndex": 1, "rightpad": 1},
-    {"name": "IFL", "color": "blue", "index": 1, "posIndex": 2, "rightpad": 0},
-    {"name": "IFR", "color": "purple", "index": 5, "posIndex": 3, "rightpad": 2},
-    {"name": "IBL", "color": "yellow", "index": 3, "posIndex": 4, "rightpad": 0},
-    {"name": "IBR", "color": "red", "index": 4, "posIndex": 5, "rightpad": 1},
-    {"name": "OBL", "color": "orange", "index": 7, "posIndex": 6, "rightpad": 2},
-    {"name": "OBR", "color": "pink", "index": 6, "posIndex": 7, "rightpad": 0},
-]
-mapping_dict = {item["name"]: item["index"] for item in mapping}
-print(mapping_dict)
-
-# GETIP and set it to device_ip
-command = "ifconfig | grep 192 |awk '/inet/ {print $2; exit}' "
-result = subprocess.run(
-    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-)
-device_ip = ""
-if result.returncode == 0:
-    device_ip = result.stdout.strip()
-else:
-    print(f"Command failed with error: {result.stderr}")
-
-# env vars to make joystik work in background
-os.environ["SDL_VIDEO_ALLOW_SCREENSAVER"] = "1"
-os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
-os.environ["SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
-os.environ["SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR"] = "0"
-
-
-CTRL_DEADZONES = [0.2] * 6  # Adjust these to your liking.
-
-
-def mapnum(
-    num,
-    outMin,
-    outMax,
-    inMin=-1,
-    inMax=1,
-):
-    return round(
-        outMin + (float(num - inMin) / float(inMax - inMin) * (outMax - outMin))
-    )
-
-
-def formatMessage(message):
-    # convert message array to comma sepearted string
-
-    output = "c"
-    if RUN_THRUSTER:
-        for i in range(len(message)):
-            output += "," + str(message[i])
-    else:
-        for i in range(len(message)):
-            output += ",1500"
-    return output
+CTRL_DEADZONES = [JOY_DEADZONE] * 6  # Adjust these to your liking.
 
 
 class mainProgram(object):
@@ -120,7 +61,6 @@ class mainProgram(object):
         self.axiscount = self.joystick.get_numaxes()
         self.buttoncount = self.joystick.get_numbuttons()
         self.axes = [0.0] * self.axiscount
-        self.runJoy = True
         self.buttons = [0] * self.buttoncount
 
     def run(self):
@@ -151,22 +91,9 @@ class mainProgram(object):
                 self.lastbuttons = list(self.buttons)
                 # print("ME SEES A CHANGE")
 
-                if self.runJoy:
+                if RUN_JOYSTICK:
                     self.control()
             # time.sleep(0.1)
-
-    """
-    Thruster Mapping:
-    1: IFL (blue)
-    2: OFL (gray)
-    3: IBL (yellow)
-    4: OBL (orange)
-    5: OFR (cyan)
-    6: IBR (red)
-    7: IFR (purple)
-    8: OBR (pink)
-
-    """
 
     def control(self):
         # print("Control")
@@ -201,6 +128,9 @@ class mainProgram(object):
         # print(controlData)
 
         if USE_SOCKET:
+            print(controlData)
+            controlData = parseinput.parse(controlData)
+
             sio.emit("UDP", controlData)
 
     def quit(self, status=0):
@@ -209,7 +139,6 @@ class mainProgram(object):
 
 
 def runJoyStick():
-
 
     if USE_SOCKET:
         sio.connect("http://localhost:5001", transports=["websocket"])
@@ -228,4 +157,5 @@ def runJoyStick():
 
 
 if __name__ == "__main__":
+    USE_SOCKET = False
     runJoyStick()
