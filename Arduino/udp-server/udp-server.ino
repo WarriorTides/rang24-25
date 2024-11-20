@@ -10,10 +10,10 @@ const int THRUSTER_COUNT = 8;
 const int SERVO_COUNT = 4;
 const int ACTUATOR_COUNT = 2;
 
-int RIGHT_RPWM = 50;
-int RIGHT_LPWM = 51;
-int LEFT_RPWM = 1;
-int LEFT_LPWM = 2;
+int RIGHT_RPWM = 33;
+int RIGHT_LPWM = 35;
+int LEFT_RPWM = 37;
+int LEFT_LPWM = 39;
 int sensorPin1 = A0;
 int sensorPin2 = A1;
 
@@ -21,16 +21,16 @@ int sensorVal1, sensorVal2;
 int Speed = 255;
 float strokeLength = 4.0;
 float extensionLength1, extensionLength2;
-float targetPositionInches1 = 2.0;
-float targetPositionInches2 = 3.0;
+float targetPositionInches1 = 0;
+float targetPositionInches2 = 0;
 float errorTolerance = 0.05;
 
 int maxAnalogReading = 1023;
 int minAnalogReading = 0;
 
 Servo thrusters[THRUSTER_COUNT];
-const byte thrusterPins[] = {6, 8, 10, 12, 2, 4, 14, 16};
-const byte servoPins[] = {9, 5, 7, 3};
+const byte thrusterPins[] = {17, 15, 13, 11, 3, 5, 7, 9};
+const byte servoPins[] = {14, 12, 10, 8};
 bool enabled = false;
 int servoAngles[] = {90, 90, 90, 90};
 
@@ -202,9 +202,9 @@ float mapfloat(float x, float inputMin, float inputMax, float outputMin, float o
     return (x - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
 
-void controlActuator(float extensionLength, float targetPosition, int RPWM, int LPWM)
+void controlActuator(float extnsionLength, float targetPosition, int RPWM, int LPWM)
 {
-    float error = abs(extensionLength - targetPosition);
+    e float error = abs(extensionLength - targetPosition);
 
     if (error <= errorTolerance)
     {
