@@ -1,6 +1,7 @@
 import socket
 import time
 import subprocess
+
 # Define the IP address and port of the Arduino
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
@@ -30,7 +31,7 @@ try:
         # message = input("Enter message: ")
 
         # message = "c,1500,1500,1500,1500,1500,1500,1500,1500,90,90,90"
-        message = str(time.time())
+        message = input("Enter message: ")
         print(f"{message}")
 
         sent = sock.sendto(message.encode(), (arduino_ip, arduino_port))

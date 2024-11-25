@@ -9,6 +9,7 @@ import os
 import socketio
 from settings import *
 import parseinput
+import utils
 
 # env vars to make joystik work in background
 os.environ["SDL_VIDEO_ALLOW_SCREENSAVER"] = "1"
@@ -20,6 +21,7 @@ os.environ["SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR"] = "0"
 sio = socketio.Client()
 
 isConnected = True
+device_ip = utils.get_ip()
 
 
 @sio.event
@@ -62,6 +64,7 @@ class mainProgram(object):
         self.buttoncount = self.joystick.get_numbuttons()
         self.axes = [0.0] * self.axiscount
         self.buttons = [0] * self.buttoncount
+        self.curMessage = ""
 
     def run(self):
         print("Running")
@@ -78,6 +81,8 @@ class mainProgram(object):
                     self.buttons[event.button] = 1
                 elif event.type == SOCKETEVENT:
                     print("Socket event: " + str(event.message))
+                    self.curMessage = str(event.message)
+                    self.sendUDP()
 
             for i in range(len(self.axes)):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
@@ -94,6 +99,20 @@ class mainProgram(object):
                 if RUN_JOYSTICK:
                     self.control()
             # time.sleep(0.1)
+
+    def sendUDP(self):
+        if SEND_UDP:
+            sock.sendto(self.curMessage.encode(), ARDUINO_DEVICE)
+            print(f"Sent: {self.curMessage}")
+            print("Waiting for response...")
+            sock.settimeout(1.0)  # Set the timeout to  1 second
+            try:
+                data, server = sock.recvfrom(8888)
+                sio.emit("joystick", str(data.decode()))
+                print(f"Received: {data.decode()}")
+            except socket.timeout:
+                print("No response received within  1 second.")
+        # else:
 
     def control(self):
         # print("Control")
@@ -131,7 +150,8 @@ class mainProgram(object):
             print(controlData)
             controlData = parseinput.parse(controlData)
 
-            sio.emit("UDP", controlData)
+            self.curMessage = controlData
+            self.sendUDP()
 
     def quit(self, status=0):
         pygame.quit()
@@ -140,20 +160,32 @@ class mainProgram(object):
 
 def runJoyStick():
 
+    global sock
+    if SEND_UDP:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        sock.bind((device_ip, arduino_port))
+
     if USE_SOCKET:
         sio.connect("http://localhost:5001", transports=["websocket"])
 
     try:
+
         program = mainProgram()
+
         program.init()
 
         program.run()
 
     except KeyboardInterrupt:
         pygame.quit()
+        if SEND_UDP:
+            sock.close()
 
     finally:
         pygame.quit()
+        if SEND_UDP:
+            sock.close()
 
 
 if __name__ == "__main__":

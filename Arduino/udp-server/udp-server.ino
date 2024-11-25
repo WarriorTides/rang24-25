@@ -202,9 +202,9 @@ float mapfloat(float x, float inputMin, float inputMax, float outputMin, float o
     return (x - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
 
-void controlActuator(float extnsionLength, float targetPosition, int RPWM, int LPWM)
+void controlActuator(float extensionLength, float targetPosition, int RPWM, int LPWM)
 {
-    e float error = abs(extensionLength - targetPosition);
+     float error = abs(extensionLength - targetPosition);
 
     if (error <= errorTolerance)
     {

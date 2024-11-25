@@ -84,5 +84,6 @@ def parse(controlData):
                     servoangles[i] = servo["angles"][cur_angle_index]
                 lastbuttons[i] = cur_button
         controlString += "," + str(servoangles[i])
+    controlString += ",0,0"
 
     return controlString

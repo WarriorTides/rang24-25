@@ -1,3 +1,4 @@
+import os
 import socket
 import time
 import threading
@@ -18,6 +19,7 @@ device_ip = utils.get_ip()
 
 
 def runSocket():
+    print("Socket connected")
     socketio.run(app, port=5001, host="0.0.0.0")
 
 
@@ -37,7 +39,20 @@ def handle_settings(data):
     if data == "servo":
         send(servo_controlers, broadcast=True)
     elif data == "mapping":
-        send(mapping, broadcast=True)
+        send("mapping:" + str(mapping), broadcast=True)
+    # elif data
+
+
+@socketio.on("setMapping")
+def handle_setmapping(data):
+    print("received message: setmapping " + str(data))
+    # EDIT THE settings file to set the mapping
+    with open("mapping.json", "w") as file:
+        file.write(data)
+    settings.mapping = json.loads(data)
+
+    send("Mapping set", broadcast=True)
+    # restart the server
 
 
 @socketio.on("message")
@@ -59,34 +74,39 @@ def handle_joystick_message(data):
 def handle_udp_message(data):
     print("UPD received message: " + str(data))
     data = str(data)
-    if data == "connect":
-        try:
-            settings.RUN_SOCKET = True
-            sock.bind(ARDUINO_DEVICE)
-            print("Socket connected")
-            send("Socket connected", broadcast=True)
-        except Exception as e:
-            print("Error connecting to socket")
-            print(e)
-            send(f"Error connecting to socket: {e}", broadcast=True)
-    elif data == "disconnect":
-        settings.RUN_SOCKET = False
-        sock.close()
-        print("Socket closed")
-        send("Socket closed", broadcast=True)
-    else:
-        if settings.RUN_SOCKET == True:
-            sock.sendto(data.encode(), ARDUINO_DEVICE)
-            print(f"Sent: {data}")
-            print("Waiting for response...")
-            sock.settimeout(0.5)  # Set the timeout to  1 second
-            try:
-                data, server = sock.recvfrom(8888)
-                print(f"Received: {data.decode()}")
-                send(f"Received: {data.decode()}", broadcast=True)
-            except socket.timeout:
-                print("No response received within  1 second.")
-                send("No response received within  1 second.", broadcast=True)
+
+    if RUN_PYGAME:
+        pygame.event.post(
+            pygame.event.Event(pygame_controller.SOCKETEVENT, message=data)
+        )
+    # if data == "connect":
+    #     # try:
+    #     settings.RUN_SOCKET = True
+    #     sock.bind((device_ip, arduino_port))
+    #     print("Socket connected")
+    #     send("Socket connected", broadcast=True)
+    # # except Exception as e:
+    # #     print("Error connecting to socket")
+    # #     print(e)
+    # #     send(f"Error connecting to socket: {e}", broadcast=True)
+    # elif data == "disconnect":
+    #     settings.RUN_SOCKET = False
+    #     sock.close()
+    #     print("Socket closed")
+    #     send("Socket closed", broadcast=True)
+    # else:
+    #     if settings.RUN_SOCKET == True:
+    #         sock.sendto(data.encode(), ARDUINO_DEVICE)
+    #         print(f"Sent: {data}")
+    #         print("Waiting for response...")
+
+    #         try:
+    #             data, server = sock.recvfrom(8888)
+    #             print(f"Received: {data.decode()}")
+    #             send(f"Received: {data.decode()}", broadcast=True)
+    #         except socket.timeout:
+    #             print("No response received within  1 second.")
+    #             send("No response received within  1 second.", broadcast=True)
 
     # send(str(data), broadcast=True)
 
@@ -104,11 +124,16 @@ def handle_disconnect():
 
 
 if __name__ == "__main__":
+    # sock.bind((device_ip, arduino_port))
+    # sock.settimeout(1)  # Set the timeout to  1 second
+
     socketio_thread = threading.Thread(target=runSocket)
     # socketio_thread.setDaemon(True)
     socketio_thread.start()
     # pid_thread = threading.Thread(target=getPID.runStuff)
     # pid_thread.start()
+    print(mapping)
+    print(os.getpid())
     time.sleep(1)
     if RUN_PYGAME:
         pygame_controller.runJoyStick()
