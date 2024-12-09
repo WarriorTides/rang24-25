@@ -82,6 +82,7 @@ class mainProgram(object):
                 elif event.type == SOCKETEVENT:
                     print("Socket event: " + str(event.message))
                     self.curMessage = str(event.message)
+
                     self.sendUDP()
 
             for i in range(len(self.axes)):
@@ -151,6 +152,7 @@ class mainProgram(object):
             controlData = parseinput.parse(controlData)
 
             self.curMessage = controlData
+            print(controlData)
             self.sendUDP()
 
     def quit(self, status=0):

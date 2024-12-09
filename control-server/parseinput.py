@@ -2,6 +2,8 @@ from settings import *
 from power_comp import *
 
 mapping_dict = {item["name"]: item["index"] for item in mapping}
+# sort
+mapping = sorted(mapping, key=lambda x: x["index"])
 # MappingDict is in this format: {'OFL': 2, 'OFR': 0, 'IFL': 1, 'IFR': 5, 'IBL': 3, 'IBR': 4, 'OBL': 7, 'OBR': 6}
 
 

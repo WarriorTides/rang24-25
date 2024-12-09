@@ -2,21 +2,21 @@
     {
         "name": "OFL",
         "color": "gray",
-        "index": 7,
+        "index": 2,
         "posIndex": 0,
         "rightpad": 2
     },
     {
         "name": "OFR",
         "color": "cyan",
-        "index": 6,
+        "index": 5,
         "posIndex": 1,
         "rightpad": 1
     },
     {
         "name": "IFL",
         "color": "blue",
-        "index": 5,
+        "index": 3,
         "posIndex": 2,
         "rightpad": 0
     },
@@ -30,14 +30,14 @@
     {
         "name": "IBL",
         "color": "yellow",
-        "index": 3,
+        "index": 0,
         "posIndex": 4,
         "rightpad": 0
     },
     {
         "name": "IBR",
         "color": "red",
-        "index": 2,
+        "index": 7,
         "posIndex": 5,
         "rightpad": 1
     },
@@ -51,7 +51,7 @@
     {
         "name": "OBR",
         "color": "pink",
-        "index": 0,
+        "index": 6,
         "posIndex": 7,
         "rightpad": 0
     }

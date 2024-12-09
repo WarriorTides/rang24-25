@@ -6,12 +6,12 @@ arduino_ip = "192.168.1.151"
 arduino_port = 8888
 
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
-RUN_PYGAME = False
+RUN_PYGAME = True
 RUN_SOCKET = True
 SEND_UDP = True
 
 
-MAX_TROTTLE = 0.5
+MAX_TROTTLE = 0.2
 RUN_THRUSTER = True
 JOY_DEADZONE = 0.1
 RUN_JOYSTICK = True

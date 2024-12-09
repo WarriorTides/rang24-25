@@ -19,6 +19,7 @@ if result.returncode == 0:
     device_ip = result.stdout.strip()
 else:
     print(f"Command failed with error: {result.stderr}")
+print(f"Device IP: {device_ip}")
 sock.bind((device_ip, arduino_port))
 
 # The message to send
@@ -38,7 +39,7 @@ try:
         time.sleep(0.00001)
         print("Waiting for response...")
         try:
-            data, server = sock.recvfrom(3578)
+            data, server = sock.recvfrom(8888)
             print(f"Received: {data.decode()}")
         except socket.timeout:
             print("No response received")
