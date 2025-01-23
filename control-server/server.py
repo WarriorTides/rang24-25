@@ -53,8 +53,10 @@ def handle_setmapping(data):
 
     send("Mapping set", broadcast=True)
     # restart the server
-
-
+@socketio.on("sensors")
+def handle_sensors(data):
+    print("received message: setmapping " + str(data))
+  
 @socketio.on("message")
 def handle_message(data):
     if RUN_PYGAME:
