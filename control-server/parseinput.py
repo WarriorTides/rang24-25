@@ -27,14 +27,15 @@ def parse(controlData):
     global lastcontrol
     controlString = "c"
     xythusters = {
-        "OFR": controlData["surge"] - controlData["yaw"] - controlData["sway"],
-        "OFL": controlData["surge"] + controlData["yaw"] + controlData["sway"],
-        "OBR": controlData["surge"] - controlData["yaw"] + controlData["sway"],
-        "OBL": controlData["surge"] + controlData["yaw"] - controlData["sway"],
+        "OFR": -1 * (controlData["surge"] - controlData["yaw"] - controlData["sway"]),
+        "OFL": (controlData["surge"] + controlData["yaw"] + controlData["sway"]),
+        "OBR": -1 * (controlData["surge"] - controlData["yaw"] + controlData["sway"]),
+        "OBL": (controlData["surge"] + controlData["yaw"] - controlData["sway"]),
     }
+
     zthrusters = {
-        "IFL": controlData["heave"] - controlData["roll"] + controlData["pitch"],
-        "IBL": controlData["heave"] - controlData["roll"] - controlData["pitch"],
+        "IFL": -1 * (controlData["heave"] - controlData["roll"] + controlData["pitch"]),
+        "IBL": -1 * (controlData["heave"] - controlData["roll"] - controlData["pitch"]),
         "IBR": controlData["heave"] + controlData["roll"] - controlData["pitch"],
         "IFR": controlData["heave"] + controlData["roll"] + controlData["pitch"],
     }
