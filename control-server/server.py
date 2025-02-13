@@ -87,6 +87,11 @@ def handle_joystick_message(data):
     print("received message: joystick " + str(data))
     send(str(data), broadcast=True)
 
+@socketio.on("Pot Data")
+def handle_potentiometer_message(data):
+    print("received message: potentiometer " + str(data))
+    send(str(data), broadcast=True)
+
 
 @socketio.on("UDP")
 def handle_udp_message(data):

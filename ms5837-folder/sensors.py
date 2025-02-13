@@ -112,17 +112,17 @@ def ms_data():
 
 
 while True:
-    print("ALLL GOOD ")
     bme680_output = bme_data() if bme680 else "BME680: Not connected"
     bno055_output = bno_data() if bno055 else "BNO055: Not connected"
     ms5837_output = ms_data() if ms5837_sensor else "MS5837: Not connected"
 
-    output = {
-        "BME": bme680_output,
-        "IMU": bno055_output,
-        "DEPTH": ms5837_output,
-    }
-    print(output)
-    # sio.emit("sensors", "hello")
+    # print(f"{bme680_output}")
+    # print(f"{bno055_output}")
+    # print(f"{ms5837_output}")
+    # print()
+    sio.emit(
+        "sensors",
+        {"bme680": bme680_output, "bno055": bno055_output, "ms5837": ms5837_output},
+    )
 
     time.sleep(0.1)
