@@ -8,7 +8,7 @@ arduino_port = 8888
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
 RUN_PYGAME = False
 RUN_SOCKET = True
-SEND_UDP = True
+SEND_UDP = False
 
 
 MAX_TROTTLE = 0.8
