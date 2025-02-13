@@ -53,10 +53,20 @@ def handle_setmapping(data):
 
     send("Mapping set", broadcast=True)
     # restart the server
+
+
+@socketio.on("Pot Data")
+def handle_potentiometer_message(data):
+    print("received message: potentiometer " + str(data))
+    send(str(data), broadcast=True)
+
+
 @socketio.on("sensors")
 def handle_sensors(data):
-    print("received message: setmapping " + str(data))
-  
+    print("received message: sensors " + str(data))
+    send("sensors:" + str(data), broadcast=True)
+
+
 @socketio.on("message")
 def handle_message(data):
     if RUN_PYGAME:
@@ -64,6 +74,12 @@ def handle_message(data):
             pygame.event.Event(pygame_controller.SOCKETEVENT, message=data)
         )
     print("received message: message  " + str(data))
+
+
+# @socketio.on("sensors")
+# def handle_joystick_message(data):
+#     print("received message: sensors " + str(data))
+#     send(str(data), broadcast=True)
 
 
 @socketio.on("joystick")

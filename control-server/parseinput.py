@@ -34,9 +34,9 @@ def parse(controlData):
     }
 
     zthrusters = {
-        "IFL": -1 * (controlData["heave"] - controlData["roll"] + controlData["pitch"]),
+        "IFL": (controlData["heave"] - controlData["roll"] + controlData["pitch"]),
         "IBL": -1 * (controlData["heave"] - controlData["roll"] - controlData["pitch"]),
-        "IBR": controlData["heave"] + controlData["roll"] - controlData["pitch"],
+        "IBR": -1 * controlData["heave"] + controlData["roll"] - controlData["pitch"],
         "IFR": controlData["heave"] + controlData["roll"] + controlData["pitch"],
     }
     maxxy = max(
