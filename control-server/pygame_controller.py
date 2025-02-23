@@ -1,3 +1,5 @@
+# Handles joystick input as well as UDP pmessaging
+
 import socket
 import sys
 import time
@@ -38,7 +40,6 @@ def disconnect():
     print("I'm disconnected!")
 
 
-USE_SOCKET = True
 SOCKETEVENT = pygame.event.custom_type()
 CTRL_DEADZONES = [JOY_DEADZONE] * 6  # Adjust these to your liking.
 

@@ -5,15 +5,19 @@ import json
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
 
+
+# Serveer Settings
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
 RUN_PYGAME = True
-RUN_SOCKET = True
-SEND_UDP = False
+SEND_UDP = True
 
+# Pygame settings
+USE_SOCKET = True
+JOY_DEADZONE = 0.1
 
 MAX_TROTTLE = 0.8
 RUN_THRUSTER = True
-JOY_DEADZONE = 0.1
+
 RUN_JOYSTICK = True
 
 # read mapping

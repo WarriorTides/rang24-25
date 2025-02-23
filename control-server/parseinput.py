@@ -1,5 +1,8 @@
 from settings import *
-from power_comp import *
+from power_comp import *  # powercomp is not used
+
+# This filse converts data from the control data object- raw joystick data to thruster values mapped properly
+
 
 mapping_dict = {item["name"]: item["index"] for item in mapping}
 # sort

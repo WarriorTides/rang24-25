@@ -16,15 +16,15 @@ sio = socketio.Client()
 
 @sio.event
 def connect():
-    print(" connected!")
+    print("sensors connected!")
 
 
 @sio.event
 def disconnect():
-    print("disconnected!")
+    print("sensors disconnected!")
 
 
-def runStuff():
+def runSensors():
     sio.connect("http://localhost:5001", transports=["websocket"])
     time.sleep(0.2)
 
@@ -47,4 +47,5 @@ def runStuff():
         sio.disconnect()
 
 
-runStuff()
+if __name__ == "__main__":
+    runSensors()

@@ -5,10 +5,12 @@ import threading
 import pygame
 import pygame_controller
 from flask import Flask
-from flask_socketio import SocketIO, send
+from flask_socketio import SocketIO, send, emit
 from settings import *
 import settings
 import utils
+import sensorread
+import potentiometerReader
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
@@ -35,7 +37,7 @@ def home():
 
 @socketio.on("settings")
 def handle_settings(data):
-    print("received message: settings " + str(data))
+    print("received settings: " + str(data))
     if data == "servo":
         send(servo_controlers, broadcast=True)
     elif data == "mapping":
@@ -58,13 +60,13 @@ def handle_setmapping(data):
 @socketio.on("Pot Data")
 def handle_potentiometer_message(data):
     print("received message: potentiometer " + str(data))
-    send(str(data), broadcast=True)
+    emit("pots", str(data), broadcast=True)
 
 
 @socketio.on("sensors")
 def handle_sensors(data):
     print("received message: sensors " + str(data))
-    send("sensors:" + str(data), broadcast=True)
+    emit("sensors", str(data), broadcast=True)
 
 
 @socketio.on("message")
@@ -76,20 +78,9 @@ def handle_message(data):
     print("received message: message  " + str(data))
 
 
-# @socketio.on("sensors")
-# def handle_joystick_message(data):
-#     print("received message: sensors " + str(data))
-#     send(str(data), broadcast=True)
-
-
 @socketio.on("joystick")
 def handle_joystick_message(data):
     print("received message: joystick " + str(data))
-    send(str(data), broadcast=True)
-
-@socketio.on("Pot Data")
-def handle_potentiometer_message(data):
-    print("received message: potentiometer " + str(data))
     send(str(data), broadcast=True)
 
 
@@ -102,36 +93,6 @@ def handle_udp_message(data):
         pygame.event.post(
             pygame.event.Event(pygame_controller.SOCKETEVENT, message=data)
         )
-    # if data == "connect":
-    #     # try:
-    #     settings.RUN_SOCKET = True
-    #     sock.bind((device_ip, arduino_port))
-    #     print("Socket connected")
-    #     send("Socket connected", broadcast=True)
-    # # except Exception as e:
-    # #     print("Error connecting to socket")
-    # #     print(e)
-    # #     send(f"Error connecting to socket: {e}", broadcast=True)
-    # elif data == "disconnect":
-    #     settings.RUN_SOCKET = False
-    #     sock.close()
-    #     print("Socket closed")
-    #     send("Socket closed", broadcast=True)
-    # else:
-    #     if settings.RUN_SOCKET == True:
-    #         sock.sendto(data.encode(), ARDUINO_DEVICE)
-    #         print(f"Sent: {data}")
-    #         print("Waiting for response...")
-
-    #         try:
-    #             data, server = sock.recvfrom(8888)
-    #             print(f"Received: {data.decode()}")
-    #             send(f"Received: {data.decode()}", broadcast=True)
-    #         except socket.timeout:
-    #             print("No response received within  1 second.")
-    #             send("No response received within  1 second.", broadcast=True)
-
-    # send(str(data), broadcast=True)
 
 
 @socketio.on("connect")
@@ -147,14 +108,17 @@ def handle_disconnect():
 
 
 if __name__ == "__main__":
-    # sock.bind((device_ip, arduino_port))
-    # sock.settimeout(1)  # Set the timeout to  1 second
 
     socketio_thread = threading.Thread(target=runSocket)
     # socketio_thread.setDaemon(True)
     socketio_thread.start()
-    # pid_thread = threading.Thread(target=getPID.runStuff)
-    # pid_thread.start()
+
+    sensors_thread = threading.Thread(target=sensorread.runSensors)
+    sensors_thread.start()
+
+    pot_thread = threading.Thread(target=potentiometerReader.main)
+    pot_thread.start()
+
     print(mapping)
     print(os.getpid())
     time.sleep(1)
