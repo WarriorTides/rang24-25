@@ -8,8 +8,8 @@ arduino_port = 8888
 
 # Serveer Settings
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
-RUN_PYGAME = True
-SEND_UDP = True
+RUN_PYGAME = False
+SEND_UDP = False
 
 # Pygame settings
 USE_SOCKET = True

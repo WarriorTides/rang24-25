@@ -22,6 +22,7 @@ device_ip = utils.get_ip()
 
 def runSocket():
     print("Socket connected")
+    MAX_TROTTLE = settings.MAX_TROTTLE
     socketio.run(app, port=5001, host="0.0.0.0")
 
 
@@ -89,10 +90,17 @@ def handle_udp_message(data):
     print("UPD received message: " + str(data))
     data = str(data)
 
-    if RUN_PYGAME:
-        pygame.event.post(
-            pygame.event.Event(pygame_controller.SOCKETEVENT, message=data)
-        )
+    # if RUN_PYGAME:
+    #     pygame.event.post(
+    #         pygame.event.Event(pygame_controller.SOCKETEVENT, message=data)
+    #     )
+
+
+@socketio.on("thrusterPower")
+def handle_power(data):
+    print("received new power value: " + str(data))
+    settings.MAX_TROTTLE = float(data)
+    # send(str(data), broadcast=True)
 
 
 @socketio.on("connect")
