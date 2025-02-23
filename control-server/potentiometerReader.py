@@ -63,13 +63,13 @@ def sendData():
 
                 data = [round(val / 1023, 2) for val in data]
 
+                data = [0 if val <= 0.01 else 1 if val >= 0.99 else val for val in data]
+
                 if RUNSOCKET:
                     sio.emit("Pot Data", data)
                 else:
                     print("Pot Data", data)
 
-    except KeyboardInterrupt:
-        print("Stopping...")
     finally:
         print("Closed")
         ser.close()
