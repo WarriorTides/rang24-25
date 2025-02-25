@@ -33,7 +33,6 @@ def runSensors():
 
             message = socket.recv_string()
             data = json.loads(message)
-            print("Received Sensor Data:", data)
             sio.emit("sensors", str(data))
 
             time.sleep(0.1)

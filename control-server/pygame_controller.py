@@ -41,6 +41,7 @@ def disconnect():
 
 
 SOCKETEVENT = pygame.event.custom_type()
+POWERCHANGE = pygame.event.custom_type()
 CTRL_DEADZONES = [JOY_DEADZONE] * 6  # Adjust these to your liking.
 
 
@@ -66,6 +67,7 @@ class mainProgram(object):
         self.axes = [0.0] * self.axiscount
         self.buttons = [0] * self.buttoncount
         self.curMessage = ""
+        self.MAX_POWER = MAX_TROTTLE
 
     def run(self):
         print("Running")
@@ -84,6 +86,9 @@ class mainProgram(object):
                     print("Socket event: " + str(event.message))
                     self.curMessage = str(event.message)
                     self.sendUDP()
+                elif event.type == POWERCHANGE:
+                    print("Power change: " + str(event.message))
+                    self.MAX_POWER = float(event.message)
 
             for i in range(len(self.axes)):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
@@ -149,7 +154,7 @@ class mainProgram(object):
 
         if USE_SOCKET:
             print(controlData)
-            controlData = parseinput.parse(controlData)
+            controlData = parseinput.parse(controlData, self.MAX_POWER)
 
             self.curMessage = controlData
             print(controlData)

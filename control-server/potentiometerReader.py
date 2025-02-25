@@ -41,6 +41,7 @@ def sendData():
     time.sleep(0.2)
 
     dataPrev = [0.0] * 4
+    dataSendPrev = [0.0] * 4
 
     try:
         while True:
@@ -55,7 +56,7 @@ def sendData():
             except ValueError:
                 print("Invalid data received:", values)
                 continue
-            send = any(abs(data[i] - dataPrev[i]) >= 5 for i in range(4))
+            send = any(abs(data[i] - dataPrev[i]) >= 8 for i in range(4))
             # map to 0-1
 
             if send:
@@ -64,10 +65,12 @@ def sendData():
                 data = [round(val / 1023, 2) for val in data]
 
                 data = [0 if val <= 0.01 else 1 if val >= 0.99 else val for val in data]
+                senddata = any(abs(data[i] - dataSendPrev[i]) > 0 for i in range(4))
+                dataSendPrev = data.copy()
 
-                if RUNSOCKET:
+                if RUNSOCKET and senddata:
                     sio.emit("Pot Data", data)
-                else:
+                elif senddata:
                     print("Pot Data", data)
 
     finally:

@@ -18,15 +18,15 @@ for i in range(len(servo_controlers)):
 # lastcontrol = {}
 
 
-def map_thruster(value):  # from -1 to 1 to 1100 to 1900
-    return int((value * MAX_TROTTLE) * 400 + 1500)
+def map_thruster(value, MAX_POWER):  # from -1 to 1 to 1100 to 1900
+    return int((value * MAX_POWER) * 400 + 1500)
 
 
 def map_servo(value, a1, a2):  # from -1 to 1 to a1 to a2
     return int(((value + 1) * 0.5 * (a2 - a1)) + a1)
 
 
-def parse(controlData):
+def parse(controlData, MAX_POWER):
     global lastcontrol
     controlString = "c"
     xythusters = {
@@ -63,7 +63,7 @@ def parse(controlData):
         controlarray[i] = combinedthrust[mapping[i]["name"]]
 
     for i in controlarray:
-        controlString += "," + str(map_thruster(i))
+        controlString += "," + str(map_thruster(i, MAX_POWER))
 
     for i in range(len(servo_controlers)):
         servo = servo_controlers[i]

@@ -61,12 +61,23 @@ def handle_setmapping(data):
 @socketio.on("Pot Data")
 def handle_potentiometer_message(data):
     print("received message: potentiometer " + str(data))
-    emit("pots", str(data), broadcast=True)
+    print(("DATA", data[0]))
+    data[0] = data[0] * settings.MAX_TROTTLE
+    emit("pots", (data), broadcast=True)
+
+    if RUN_PYGAME:
+        pygame.event.post(
+            pygame.event.Event(
+                pygame_controller.POWERCHANGE,
+                message=str(data[0]),
+            )
+        )
 
 
 @socketio.on("sensors")
 def handle_sensors(data):
-    print("received message: sensors " + str(data))
+    # print("received message: sensors " + str(data))
+
     emit("sensors", str(data), broadcast=True)
 
 
@@ -89,7 +100,10 @@ def handle_joystick_message(data):
 def handle_udp_message(data):
     print("UPD received message: " + str(data))
     data = str(data)
-
+    if RUN_PYGAME:
+        pygame.event.post(
+            pygame.event.Event(pygame_controller.POWERCHANGE, message=data)
+        )
     # if RUN_PYGAME:
     #     pygame.event.post(
     #         pygame.event.Event(pygame_controller.SOCKETEVENT, message=data)
@@ -99,7 +113,7 @@ def handle_udp_message(data):
 @socketio.on("thrusterPower")
 def handle_power(data):
     print("received new power value: " + str(data))
-    settings.MAX_TROTTLE = float(data)
+
     # send(str(data), broadcast=True)
 
 
