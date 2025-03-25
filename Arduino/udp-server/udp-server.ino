@@ -14,8 +14,8 @@ int RIGHT_RPWM = 33;
 int RIGHT_LPWM = 35;
 int LEFT_RPWM = 37;
 int LEFT_LPWM = 39;
-int sensorPin1 = A0;
-int sensorPin2 = A1;
+int sensorPin1 = A11;
+int sensorPin2 = A14;
 
 int sensorVal1, sensorVal2;
 int Speed = 255;
@@ -55,12 +55,12 @@ void setup()
         servos[i].attach(servoPins[i]);
         servos[i].write(servoAngles[i]);
     }
-    // pinMode(RIGHT_RPWM, OUTPUT);
-    // pinMode(RIGHT_LPWM, OUTPUT);
-    // pinMode(LEFT_RPWM, OUTPUT);
-    // pinMode(LEFT_LPWM, OUTPUT);
-    // pinMode(sensorPin1, INPUT);
-    // pinMode(sensorPin2, INPUT);
+    pinMode(RIGHT_RPWM, OUTPUT);
+    pinMode(RIGHT_LPWM, OUTPUT);
+    pinMode(LEFT_RPWM, OUTPUT);
+    pinMode(LEFT_LPWM, OUTPUT);
+    pinMode(sensorPin1, INPUT);
+    pinMode(sensorPin2, INPUT);
 
     uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
     Ethernet.begin(mac, IPAddress(192, 168, 1, 151));
@@ -75,14 +75,14 @@ void setup()
 void loop()
 {
 
-    // int sensorVal1 = analogRead(sensorPin1);
-    // int sensorVal2 = analogRead(sensorPin2);
+    int sensorVal1 = analogRead(sensorPin1);
+    int sensorVal2 = analogRead(sensorPin2);
 
-    // extensionLength1 = mapfloat(sensorVal1, minAnalogReading, maxAnalogReading, 0.0, strokeLength);
-    // extensionLength2 = mapfloat(sensorVal2, minAnalogReading, maxAnalogReading, 0.0, strokeLength);
+    extensionLength1 = mapfloat(sensorVal1, minAnalogReading, maxAnalogReading, 0.0, strokeLength);
+    extensionLength2 = mapfloat(sensorVal2, minAnalogReading, maxAnalogReading, 0.0, strokeLength);
 
-    // controlActuator(extensionLength1, targetPositionInches1, RIGHT_RPWM, RIGHT_LPWM);
-    // controlActuator(extensionLength2, targetPositionInches2, LEFT_RPWM, LEFT_LPWM);
+    controlActuator(extensionLength1, targetPositionInches1, RIGHT_RPWM, RIGHT_LPWM);
+    controlActuator(extensionLength2, targetPositionInches2, LEFT_RPWM, LEFT_LPWM);
 
     // check for new udp-packet:
     int size = udp.parsePacket();
