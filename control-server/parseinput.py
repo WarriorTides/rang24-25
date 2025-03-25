@@ -30,17 +30,17 @@ def parse(controlData, MAX_POWER):
     global lastcontrol
     controlString = "c"
     xythusters = {
-        "OFR": -1 * (controlData["surge"] - controlData["yaw"] - controlData["sway"]),
-        "OFL": (controlData["surge"] + controlData["yaw"] + controlData["sway"]),
-        "OBR": -1 * (controlData["surge"] - controlData["yaw"] + controlData["sway"]),
-        "OBL": (controlData["surge"] + controlData["yaw"] - controlData["sway"]),
+        "OFR": (controlData["surge"] - controlData["yaw"] - controlData["sway"]),
+        "OFL": -1 * (controlData["surge"] + controlData["yaw"] + controlData["sway"]),
+        "OBR": (controlData["surge"] - controlData["yaw"] + controlData["sway"]),
+        "OBL": -1 * (controlData["surge"] + controlData["yaw"] - controlData["sway"]),
     }
 
     zthrusters = {
         "IFL": (controlData["heave"] - controlData["roll"] + controlData["pitch"]),
         "IBL": -1 * (controlData["heave"] - controlData["roll"] - controlData["pitch"]),
-        "IBR": -1 * controlData["heave"] + controlData["roll"] - controlData["pitch"],
-        "IFR": controlData["heave"] + controlData["roll"] + controlData["pitch"],
+        "IBR": controlData["heave"] + controlData["roll"] - controlData["pitch"],
+        "IFR": -1 * controlData["heave"] + controlData["roll"] + controlData["pitch"],
     }
     maxxy = max(
         abs(value) for value in xythusters.values()
@@ -81,10 +81,10 @@ def parse(controlData, MAX_POWER):
 
                 cur_button = controlData["buttons"][servo["index"]]
                 last_button = lastbuttons[i]
-                print(last_button, cur_button)
+                # print(last_button, cur_button)
 
                 if cur_button != last_button and cur_button == 1:
-                    print("Button state changed")
+                    # print("Button state changed")
                     cur_angle_index += 1
                     cur_angle_index %= len(servo["angles"])
                     servoangles[i] = servo["angles"][cur_angle_index]

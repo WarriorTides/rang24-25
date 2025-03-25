@@ -104,13 +104,9 @@ class mainProgram(object):
                     except ValueError:
                         print("Invalid power value")
                 elif event.type == SENSORDATA:
-                    try:
-                        json_data = ast.literal_eval(event.message)
-                        # print(json_data["DEPTH"]["Depth"])
-                        self.depth = json_data["DEPTH"]["Depth"]
-                    except Exception as e:
-                        self.depth = -1
-                        # print("Invalid sensors")
+                    json_data = ast.literal_eval(event.message)
+                    # print(json_data["DEPTH"]["Depth"])
+                    self.depth = json_data["DEPTH"]["Depth"]
 
             for i in range(len(self.axes)):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:

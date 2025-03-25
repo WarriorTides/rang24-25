@@ -22,6 +22,7 @@ websocket-client = "^1.7.0"
 matplotlib = "^3.8.3"
 zmq = "^0.0.0"
 pyserial = "^3.5"
+simple-pid = "^2.0.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -20,6 +20,10 @@ RUN_THRUSTER = True
 
 RUN_JOYSTICK = True
 
+P = 0.5
+I = 0.1
+D = 0.1
+
 # read mapping
 with open("mapping.json", "r") as f:
     mapping = json.load(f)

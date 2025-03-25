@@ -1358,6 +1358,22 @@ iso8601 = ">=0.1.12"
 pyyaml = ">=3.13"
 
 [[package]]
+name = "simple-pid"
+version = "2.0.1"
+description = "A simple, easy to use PID controller"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "simple_pid-2.0.1-py3-none-any.whl", hash = "sha256:1d53ed76b03d949ceea46b538fb22999d27899e2e655aa19b99c40f6edcedca6"},
+    {file = "simple_pid-2.0.1.tar.gz", hash = "sha256:5771761c54541c900e597d6c2e4ea93fd2cc98f4e48cb9eca265fba2e65be99e"},
+]
+
+[package.extras]
+doc = ["furo (==2023.3.27)", "myst-parser (==1.0.0)", "sphinx (==6.2.1)", "sphinx-copybutton (==0.5.2)"]
+examples = ["matplotlib", "numpy"]
+test = ["pytest"]
+
+[[package]]
 name = "simple-websocket"
 version = "1.0.0"
 description = "Simple WebSocket server and client for Python"
@@ -1713,4 +1729,4 @@ pyzmq = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "50434394891016674446da697989b777c642aa4cdfe8f3518cb413637750e8f7"
+content-hash = "a6530964b840caba2af8cda998e154c0f46eb6769ea656ad6501cd25c9cb6ccc"
