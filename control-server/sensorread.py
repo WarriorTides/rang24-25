@@ -34,7 +34,7 @@ def runSensors():
 
             message = socket.recv_string()
             data = json.loads(message)
-            print(data) 
+            # print(data) 
             sio.emit("sensors", str(data))
 
             time.sleep(0.1)
