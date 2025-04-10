@@ -79,7 +79,8 @@ class mainProgram(object):
         self.buttons = [0] * self.buttoncount
         self.curMessage = ""
         # self.sadme="im sad"
-        self.bigbilly= 200
+        self.bouyone=200
+        self.bouytwo=200
         self.MAX_POWER = MAX_TROTTLE
         self.depth = -1
         self.depthvalue = 0
@@ -105,9 +106,17 @@ class mainProgram(object):
                     # print("POERRJOISJDOF")
                     # print(event.message)
                     try:
-                        self.MAX_POWER = float(event.message.split(",")[0])
-                        # print()
-                        self.bigbilly=int(event.message.split(",")[1])
+                        datarr=event.message.split(",")
+                        self.MAX_POWER = float(datarr[0])
+                        self.bouyone=int(datarr[1])
+                        self.bouytwo=int(datarr[2])
+                        self.control()
+                        # print(self.bouyone)
+                        # self.floatpos= 
+                        # print(floatpos)
+                        # self.floatpos[0]=datarr[1]
+                        # self.floatpos[1]=datarr[2]
+                        # self.bigbilly=int(event.message.split(",")[1])
                         # blabla=event.message
                         # self.MAX_POWER = float(event.blabla)
                         # self.depthvalue=1
@@ -195,6 +204,8 @@ class mainProgram(object):
             "pitch": pitch,
             "axes": self.axes,
             "buttons": self.buttons,
+            "f1":self.bouyone,
+            "f2":self.bouytwo
         }
         # print(controlData)
         # if self.depthvalue != 0:

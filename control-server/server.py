@@ -91,13 +91,13 @@ def handle_sensors(data):
 
     emit("sensors", str(data), broadcast=True)
 
-    if RUN_PYGAME:
-        pygame.event.post(
-            pygame.event.Event(
-                pygame_controller.SENSORDATA,
-                message=str(data),
-            )
-        )
+    # if RUN_PYGAME:
+    #     pygame.event.post(
+    #         pygame.event.Event(
+    #             pygame_controller.SENSORDATA,
+    #             message=str(data),
+    #         )
+    #     )
 
 
 @socketio.on("message")

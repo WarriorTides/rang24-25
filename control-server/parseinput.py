@@ -91,7 +91,7 @@ def parse(controlData, MAX_POWER):
                 lastbuttons[i] = cur_button
             
         controlString += "," + str(servoangles[i])
-    controlString += ",200,200"
-    # controlString += "," + str(float[0]) + "," + str(float[1])
+    
+    controlString += "," + str(controlData["f1"]) + "," + str(controlData["f2"])
 
     return controlString

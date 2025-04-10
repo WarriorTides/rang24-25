@@ -25,7 +25,7 @@ def disconnect():
 
 
 def runSensors():
-    # time.sleep(5)
+    time.sleep(5)
     sio.connect("http://localhost:5001", transports=["websocket"])
     time.sleep(0.2)
 
@@ -34,7 +34,7 @@ def runSensors():
 
             message = socket.recv_string()
             data = json.loads(message)
-            # print(data) 
+            print(data) 
             sio.emit("sensors", str(data))
 
             time.sleep(0.1)
