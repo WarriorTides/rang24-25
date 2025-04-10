@@ -19,6 +19,8 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 device_ip = utils.get_ip()
 
+global pygameStarted
+pygameStarted=False
 
 def runSocket():
     print("Socket connected")
@@ -63,15 +65,24 @@ def handle_potentiometer_message(data):
     print("received message: potentiometer " + str(data))
     print(("DATA", data[0]))
     data[0] = data[0] * settings.MAX_TROTTLE
+    data[1] = int(data[1] * 300 + 100)
+    data[2] = int(data[2] * 300 + 100)
     emit("pots", (data), broadcast=True)
-
-    if RUN_PYGAME:
-        pygame.event.post(
-            pygame.event.Event(
-                pygame_controller.POWERCHANGE,
-                message=str(data[0]),
+    fdata=str(data[0])+"," +str(data[1])+","+str(data[2])
+    if RUN_PYGAME and pygameStarted:
+        try:
+            pygame.event.post(
+                pygame.event.Event(
+                    pygame_controller.POWERCHANGE,
+                    message=str(fdata),
+                )
             )
-        )
+        except Exception as e:
+            # Print all error information
+            print("An error occurred:")
+            print(f"Type: {type(e).__name__}")
+            print(f"Message: {e}")
+            print(f"Args: {e.args}")
 
 
 @socketio.on("sensors")
@@ -153,4 +164,6 @@ if __name__ == "__main__":
     print(os.getpid())
     time.sleep(1)
     if RUN_PYGAME:
+        pygameStarted=True
         pygame_controller.runJoyStick()
+    

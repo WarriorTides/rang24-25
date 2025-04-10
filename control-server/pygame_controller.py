@@ -52,6 +52,7 @@ def disconnect():
 SOCKETEVENT = pygame.event.custom_type()
 POWERCHANGE = pygame.event.custom_type()
 SENSORDATA = pygame.event.custom_type()
+BOUY =pygame.event.custom_type()
 CTRL_DEADZONES = [JOY_DEADZONE] * 6  # Adjust these to your liking.
 
 
@@ -77,6 +78,8 @@ class mainProgram(object):
         self.axes = [0.0] * self.axiscount
         self.buttons = [0] * self.buttoncount
         self.curMessage = ""
+        # self.sadme="im sad"
+        self.bigbilly= 200
         self.MAX_POWER = MAX_TROTTLE
         self.depth = -1
         self.depthvalue = 0
@@ -99,10 +102,20 @@ class mainProgram(object):
                     self.curMessage = str(event.message)
                     self.sendUDP()
                 elif event.type == POWERCHANGE:
+                    # print("POERRJOISJDOF")
+                    # print(event.message)
                     try:
-                        self.MAX_POWER = float(event.message)
-                    except ValueError:
+                        self.MAX_POWER = float(event.message.split(",")[0])
+                        # print()
+                        self.bigbilly=int(event.message.split(",")[1])
+                        # blabla=event.message
+                        # self.MAX_POWER = float(event.blabla)
+                        # self.depthvalue=1
+                    except Exception as e:
                         print("Invalid power value")
+                        print(e)
+            
+        
                 elif event.type == SENSORDATA:
                     try:
                         json_data = ast.literal_eval(event.message)

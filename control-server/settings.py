@@ -34,13 +34,13 @@ servo_controlers = (
             "type": "axes",
             "index": 5,
             "used": True,
-            "angles": [20, 90],
+            "angles": [20, 120],
         },
         {
             "type": "buttons",
             "index": 1,
             "used": True,
-            "angles": [20, 90],
+            "angles": [160, 81],
         },
         {
             "type": "axes",

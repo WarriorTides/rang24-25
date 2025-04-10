@@ -42,8 +42,14 @@ def parse(controlData, MAX_POWER):
         "IBR": controlData["heave"] + controlData["roll"] - controlData["pitch"],
         "IFR": -1 * controlData["heave"] + controlData["roll"] + controlData["pitch"],
     }
+    cur_button_thruster = controlData["buttons"][13]
+    # print("BUTTTON", cur_button_thruster)
+    if cur_button_thruster == 1 or cur_button_thruster == 0:
+        print("Button state changed")
+        for key in xythusters:
+            xythusters[key] *= -1
     maxxy = max(
-        abs(value) for value in xythusters.values()
+        abs(value) for value in xythusters.values() 
     )  # if max is greater than 1 we need to scale down
     # pri
     if maxxy > 1:
@@ -88,10 +94,12 @@ def parse(controlData, MAX_POWER):
                     cur_angle_index += 1
                     cur_angle_index %= len(servo["angles"])
                     servoangles[i] = servo["angles"][cur_angle_index]
+
+                
+                    
+
                 lastbuttons[i] = cur_button
-            
         controlString += "," + str(servoangles[i])
     controlString += ",200,200"
-    # controlString += "," + str(float[0]) + "," + str(float[1])
 
     return controlString
