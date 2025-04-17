@@ -17,7 +17,6 @@ import parseinput
 import utils
 
 from simple_pid import PID
-
 pid = PID(2, 0.00, 0.00, setpoint=1)
 pid.output_limits = (-1, 1)
 

@@ -67,6 +67,7 @@ def handle_potentiometer_message(data):
     data[0] = data[0] * settings.MAX_TROTTLE
     data[1] = int(data[1] * 300 + 100)
     data[2] = int(data[2] * 300 + 100)
+    data[1], data[2]=data[2],data[1]#swap the two pots to make potentiometer happy
     emit("pots", (data), broadcast=True)
     fdata=str(data[0])+"," +str(data[1])+","+str(data[2])
     if RUN_PYGAME and pygameStarted:
@@ -114,6 +115,12 @@ def handle_joystick_message(data):
     print("received message: joystick " + str(data))
     send(str(data), broadcast=True)
 
+@socketio.on("flip")
+def handle_joystick_message(data):
+    print("received message: flip " + str(data))
+    emit("flip", str(data), broadcast=True)
+
+    # send(str(flip), broadcast=True)
 
 @socketio.on("UDP")
 def handle_udp_message(data):
@@ -162,7 +169,7 @@ if __name__ == "__main__":
 
     print(mapping)
     print(os.getpid())
-    time.sleep(1)
+    time.sleep(3)
     if RUN_PYGAME:
         pygameStarted=True
         pygame_controller.runJoyStick()

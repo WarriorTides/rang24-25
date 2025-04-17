@@ -18,6 +18,8 @@ import utils
 
 from simple_pid import PID
 
+pidOn = False
+
 pid = PID(2, 0.00, 0.00, setpoint=1)
 pid.output_limits = (-1, 1)
 
@@ -84,6 +86,8 @@ class mainProgram(object):
         self.MAX_POWER = MAX_TROTTLE
         self.depth = -1
         self.depthvalue = 0
+        self.flipped=False
+        self.lastflipped=0
 
     def run(self):
         print("Running")
@@ -138,13 +142,13 @@ class mainProgram(object):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
                     self.axes[i] = 0.0
                 self.axes[i] = round(self.axes[i], 2)
-            # if self.axes[3] == 0.0:
-            #     print("Depth: ", self.depth)
-            #     self.depthvalue = pid(self.depth) * -1
-            #     print("PID: ", self.depthvalue)
-            #     self.control()
-            # else:
-            #     self.depthvalue = 0
+            if ((self.axes[3] == 0.0) and (pidOn == True)):
+                print("Depth: ", self.depth)
+                self.depthvalue = pid(self.depth) * -1
+                print("PID: ", self.depthvalue)
+                self.control()
+            else:
+                self.depthvalue = 0
             self.depthvalue = 0
 
             # Check for change in vals
@@ -180,7 +184,7 @@ class mainProgram(object):
 
         sway = -self.axes[2]  # right stick left right
 
-        heave = self.axes[3]  # right stick up down
+        heave = -self.axes[3]  # right stick up down
 
         # x button for pich and roll
         if self.buttons[0] == 0:  # x button
@@ -194,7 +198,15 @@ class mainProgram(object):
             yaw = 0
             roll = -self.axes[0]
             pitch = self.axes[1]
+        
 
+
+
+        if self.buttons[3] == 1 and not self.lastflipped == self.buttons[3]:
+            sio.emit("flip", str(not self.flipped))
+            self.flipped=not self.flipped
+            
+        self.lastflipped=self.buttons[3]
         controlData = {
             "surge": surge,
             "sway": sway,
@@ -205,7 +217,8 @@ class mainProgram(object):
             "axes": self.axes,
             "buttons": self.buttons,
             "f1":self.bouyone,
-            "f2":self.bouytwo
+            "f2":self.bouytwo,
+            "flipped": -1 if self.flipped else 1
         }
         # print(controlData)
         # if self.depthvalue != 0:

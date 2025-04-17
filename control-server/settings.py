@@ -13,7 +13,7 @@ SEND_UDP = True
 
 # Pygame settings
 USE_SOCKET = True
-JOY_DEADZONE = 0.1
+JOY_DEADZONE = 0.2
 
 MAX_TROTTLE = 0.8
 RUN_THRUSTER = True
@@ -34,25 +34,25 @@ servo_controlers = (
             "type": "axes",
             "index": 5,
             "used": True,
-            "angles": [20, 120],
+            "angles": [160,20],
         },
         {
             "type": "buttons",
             "index": 1,
             "used": True,
-            "angles": [160, 81],
+            "angles": [67, 143],
         },
         {
             "type": "axes",
             "index": 5,
             "used": True,
-            "angles": [20, 90],
+            "angles": [160,20],
         },
         {
             "type": "buttons",
             "index": 1,
             "used": True,
-            "angles": [20, 90],
+            "angles": [67, 143],
         },
     ]
 )
