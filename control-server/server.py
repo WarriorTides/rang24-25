@@ -76,17 +76,17 @@ def handle_potentiometer_message(data):
 
 @socketio.on("sensors")
 def handle_sensors(data):
-    # print("received message: sensors " + str(data))
+    print("received message: sensors " + str(data))
 
     emit("sensors", str(data), broadcast=True)
 
-    if RUN_PYGAME:
-        pygame.event.post(
-            pygame.event.Event(
-                pygame_controller.SENSORDATA,
-                message=str(data),
-            )
-        )
+    # if RUN_PYGAME:
+    #     pygame.event.post(
+    #         pygame.event.Event(
+    #             pygame_controller.SENSORDATA,
+    #             message=str(data),
+    #         )
+    #     )
 
 
 @socketio.on("message")

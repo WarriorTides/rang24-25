@@ -1,4 +1,3 @@
-
 #include <UIPEthernet.h>
 #include "utility/logging.h"
 
@@ -21,12 +20,13 @@ int sensorVal1, sensorVal2;
 int Speed = 255;
 float strokeLength = 4.0;
 float extensionLength1, extensionLength2;
-float targetPositionInches1 = 0;
-float targetPositionInches2 = 0;
+float targetPositionInches1 = 2.0;
+float targetPositionInches2 = 2.0;
 float errorTolerance = 0.05;
 
 int maxAnalogReading = 1023;
 int minAnalogReading = 0;
+
 
 Servo thrusters[THRUSTER_COUNT];
 const byte thrusterPins[] = {17, 15, 13, 11, 3, 5, 7, 9};
@@ -97,6 +97,7 @@ void loop()
             char command = msg[0];
             String data = String(msg).substring(2);
             sendData = String(msg);
+            Serial.println(data);
 
             if (command == 'c')
             {
@@ -210,17 +211,17 @@ void controlActuator(float extensionLength, float targetPosition, int RPWM, int 
     if (error <= errorTolerance)
     {
         driveActuator(0, 0, RPWM, LPWM);
-        Serial.println("Stopped");
+        // Serial.println("Stopped");
     }
     else if (extensionLength < targetPosition)
     {
         driveActuator(1, Speed, RPWM, LPWM);
-        Serial.println("Extending...");
+        // Serial.println("Extending...");
     }
     else if (extensionLength > targetPosition)
     {
         driveActuator(-1, Speed, RPWM, LPWM);
-        Serial.println("Retracting...");
+        // Serial.println("Retracting...");
     }
 }
 
@@ -244,4 +245,3 @@ void driveActuator(int Direction, int Speed, int RPWM, int LPWM)
         break;
     }
 }
-
