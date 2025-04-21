@@ -18,7 +18,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 device_ip = utils.get_ip()
-
+pygameStarted=False
 
 def runSocket():
     print("Socket connected")
@@ -61,10 +61,11 @@ def handle_setmapping(data):
 @socketio.on("Pot Data")
 def handle_potentiometer_message(data):
     print("received message: potentiometer " + str(data))
-    print(("DATA", data[0]))
     data[0] = data[0] * settings.MAX_TROTTLE
+    # data[1] = data[1] * 300 + 100
+    # data[2] = data[2] * 300 + 100
     emit("pots", (data), broadcast=True)
-
+    # print(str(data[1])+","+str(data[2]))
     if RUN_PYGAME:
         pygame.event.post(
             pygame.event.Event(
@@ -72,6 +73,12 @@ def handle_potentiometer_message(data):
                 message=str(data[0]),
             )
         )
+        # pygame.event.post(
+        #     pygame.event.Event(
+        #         pygame_controller.FLOAT,
+        #         message=str(data[1])+","+str(data[2]),
+        #     )
+        # )
 
 
 @socketio.on("sensors")
@@ -83,7 +90,7 @@ def handle_sensors(data):
     if RUN_PYGAME:
         pygame.event.post(
             pygame.event.Event(
-                pygame_controller.SENSORDATA,
+                pygame_controller.SENSORDATA ,
                 message=str(data),
             )
         )
@@ -151,6 +158,8 @@ if __name__ == "__main__":
 
     print(mapping)
     print(os.getpid())
+    print("GOINGT TO STARET PYGAMWE")
     time.sleep(1)
     if RUN_PYGAME:
+        print("GOINGT TO STARET PYGAMWEsadfdafasd")
         pygame_controller.runJoyStick()

@@ -67,7 +67,7 @@ def sendData():
                 data = [0 if val <= 0.01 else 1 if val >= 0.99 else val for val in data]
                 senddata = any(abs(data[i] - dataSendPrev[i]) > 0 for i in range(4))
                 dataSendPrev = data.copy()
-
+                
                 if RUNSOCKET and senddata:
                     sio.emit("Pot Data", data)
                 elif senddata:

@@ -12,8 +12,6 @@ mapping = sorted(mapping, key=lambda x: x["index"])
 
 servoangles = [0] * len(servo_controlers)
 lastbuttons = [0] * len(servo_controlers)
-
-flipped=False
 for i in range(len(servo_controlers)):
     servoangles[i] = servo_controlers[i]["angles"][0]
 
@@ -31,22 +29,27 @@ def map_servo(value, a1, a2):  # from -1 to 1 to a1 to a2
 def parse(controlData, MAX_POWER):
     global lastcontrol
     controlString = "c"
-    flip=controlData["flipped"]
     xythusters = {
-        "OFR": (controlData["surge"] - controlData["yaw"] - controlData["sway"])*flip,
-        "OFL": -1 * (controlData["surge"] + controlData["yaw"] + controlData["sway"])*flip,
-        "OBR": (controlData["surge"] - controlData["yaw"] + controlData["sway"])*flip,
-        "OBL": -1 * (controlData["surge"] + controlData["yaw"] - controlData["sway"])*flip,
+        "OFR": (controlData["surge"] - controlData["yaw"] - controlData["sway"]),
+        "OFL": -1 * (controlData["surge"] + controlData["yaw"] + controlData["sway"]),
+        "OBR": (controlData["surge"] - controlData["yaw"] + controlData["sway"]),
+        "OBL": -1 * (controlData["surge"] + controlData["yaw"] - controlData["sway"]),
     }
 
     zthrusters = {
-        "IFL": (controlData["heave"] - controlData["roll"]*flip - controlData["pitch"]*flip),
-        "IBL": -1 * (controlData["heave"] - controlData["roll"]*flip + controlData["pitch"]*flip),
-        "IBR": controlData["heave"] + controlData["roll"]*flip + controlData["pitch"]*flip,
-        "IFR": -1 * controlData["heave"] - controlData["roll"]*flip + controlData["pitch"]*flip,
+        "IFL": (controlData["heave"] - controlData["roll"] + controlData["pitch"]),
+        "IBL": -1 * (controlData["heave"] - controlData["roll"] - controlData["pitch"]),
+        "IBR": controlData["heave"] + controlData["roll"] - controlData["pitch"],
+        "IFR": -1 * controlData["heave"] + controlData["roll"] + controlData["pitch"],
     }
+    cur_button_thruster = controlData["buttons"][13]
+    # print("BUTTTON", cur_button_thruster)
+    if cur_button_thruster == 1 or cur_button_thruster == 0:
+        print("Button state changed")
+        for key in xythusters:
+            xythusters[key] *= -1
     maxxy = max(
-        abs(value) for value in xythusters.values()
+        abs(value) for value in xythusters.values() 
     )  # if max is greater than 1 we need to scale down
     # pri
     if maxxy > 1:
@@ -91,13 +94,12 @@ def parse(controlData, MAX_POWER):
                     cur_angle_index += 1
                     cur_angle_index %= len(servo["angles"])
                     servoangles[i] = servo["angles"][cur_angle_index]
-                lastbuttons[i] = cur_button
 
-    # if(flip>0): 
-    controlString += "," + str(servoangles[0]) + ",67,160" #+ str(servoangles[1]) +"," + str(servo_controlers[3]["angles"][0]) +"," + str(servo_controlers[2]["angles"][0] )
-    # else:
-    
-        # controlString +="," + str(servo_controlers[0]["angles"][0]) +"," + str(servo_controlers[1]["angles"][0]) + "," + str(servoangles[3]) + "," + str(servoangles[2])
-    controlString += "," + str(controlData["f1"]) + "," + str(controlData["f2"])
-    print(controlString)
+                
+                    
+
+                lastbuttons[i] = cur_button
+        controlString += "," + str(servoangles[i])
+    controlString += ",200,200"
+
     return controlString

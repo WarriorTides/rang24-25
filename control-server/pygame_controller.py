@@ -18,6 +18,8 @@ import utils
 
 from simple_pid import PID
 
+pidOn = False
+
 pid = PID(2, 0.00, 0.00, setpoint=1)
 pid.output_limits = (-1, 1)
 
@@ -52,6 +54,7 @@ def disconnect():
 SOCKETEVENT = pygame.event.custom_type()
 POWERCHANGE = pygame.event.custom_type()
 SENSORDATA = pygame.event.custom_type()
+BOUY =pygame.event.custom_type()
 CTRL_DEADZONES = [JOY_DEADZONE] * 6  # Adjust these to your liking.
 
 
@@ -77,9 +80,14 @@ class mainProgram(object):
         self.axes = [0.0] * self.axiscount
         self.buttons = [0] * self.buttoncount
         self.curMessage = ""
+        # self.sadme="im sad"
+        self.bouyone=200
+        self.bouytwo=200
         self.MAX_POWER = MAX_TROTTLE
         self.depth = -1
         self.depthvalue = 0
+        self.flipped=False
+        self.lastflipped=0
 
     def run(self):
         print("Running")
@@ -99,10 +107,28 @@ class mainProgram(object):
                     self.curMessage = str(event.message)
                     self.sendUDP()
                 elif event.type == POWERCHANGE:
+                    # print("POERRJOISJDOF")
+                    # print(event.message)
                     try:
-                        self.MAX_POWER = float(event.message)
-                    except ValueError:
+                        datarr=event.message.split(",")
+                        self.MAX_POWER = float(datarr[0])
+                        self.bouyone=int(datarr[1])
+                        self.bouytwo=int(datarr[2])
+                        self.control()
+                        # print(self.bouyone)
+                        # self.floatpos= 
+                        # print(floatpos)
+                        # self.floatpos[0]=datarr[1]
+                        # self.floatpos[1]=datarr[2]
+                        # self.bigbilly=int(event.message.split(",")[1])
+                        # blabla=event.message
+                        # self.MAX_POWER = float(event.blabla)
+                        # self.depthvalue=1
+                    except Exception as e:
                         print("Invalid power value")
+                        print(e)
+            
+        
                 elif event.type == SENSORDATA:
                     try:
                         json_data = ast.literal_eval(event.message)
@@ -116,13 +142,13 @@ class mainProgram(object):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
                     self.axes[i] = 0.0
                 self.axes[i] = round(self.axes[i], 2)
-            # if self.axes[3] == 0.0:
-            #     print("Depth: ", self.depth)
-            #     self.depthvalue = pid(self.depth) * -1
-            #     print("PID: ", self.depthvalue)
-            #     self.control()
-            # else:
-            #     self.depthvalue = 0
+            if ((self.axes[3] == 0.0) and (pidOn == True)):
+                print("Depth: ", self.depth)
+                self.depthvalue = pid(self.depth) * -1
+                print("PID: ", self.depthvalue)
+                self.control()
+            else:
+                self.depthvalue = 0
             self.depthvalue = 0
 
             # Check for change in vals
@@ -158,7 +184,7 @@ class mainProgram(object):
 
         sway = -self.axes[2]  # right stick left right
 
-        heave = self.axes[3]  # right stick up down
+        heave = -self.axes[3]  # right stick up down
 
         # x button for pich and roll
         if self.buttons[0] == 0:  # x button
@@ -172,7 +198,15 @@ class mainProgram(object):
             yaw = 0
             roll = -self.axes[0]
             pitch = self.axes[1]
+        
 
+
+
+        if self.buttons[3] == 1 and not self.lastflipped == self.buttons[3]:
+            sio.emit("flip", str(not self.flipped))
+            self.flipped=not self.flipped
+            
+        self.lastflipped=self.buttons[3]
         controlData = {
             "surge": surge,
             "sway": sway,
@@ -182,6 +216,9 @@ class mainProgram(object):
             "pitch": pitch,
             "axes": self.axes,
             "buttons": self.buttons,
+            "f1":self.bouyone,
+            "f2":self.bouytwo,
+            "flipped": -1 if self.flipped else 1
         }
         # print(controlData)
         # if self.depthvalue != 0:

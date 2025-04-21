@@ -17,7 +17,6 @@ import parseinput
 import utils
 
 from simple_pid import PID
-
 pid = PID(2, 0.00, 0.00, setpoint=1)
 pid.output_limits = (-1, 1)
 
@@ -51,6 +50,7 @@ def disconnect():
 
 SOCKETEVENT = pygame.event.custom_type()
 POWERCHANGE = pygame.event.custom_type()
+FLOAT = pygame.event.custom_type()
 SENSORDATA = pygame.event.custom_type()
 CTRL_DEADZONES = [JOY_DEADZONE] * 6  # Adjust these to your liking.
 
@@ -80,6 +80,7 @@ class mainProgram(object):
         self.MAX_POWER = MAX_TROTTLE
         self.depth = -1
         self.depthvalue = 0
+        self.float = ["200", "200"]
 
     def run(self):
         print("Running")
@@ -103,10 +104,18 @@ class mainProgram(object):
                         self.MAX_POWER = float(event.message)
                     except ValueError:
                         print("Invalid power value")
+                # elif event.type == FLOAT:
+                #     print(event.message)
+                    # self.float[0] = int(event.message.split(",")[0])
+                    # self.float[1] = int(event.message.split(",")[1])
                 elif event.type == SENSORDATA:
-                    json_data = ast.literal_eval(event.message)
-                    # print(json_data["DEPTH"]["Depth"])
-                    self.depth = json_data["DEPTH"]["Depth"]
+                    try:
+                        json_data = ast.literal_eval(event.message)
+                        # print(json_data["DEPTH"]["Depth"])
+                        # self.depth = json_data["DEPTH"]["Depth"]
+                    except Exception as e:
+                        self.depth = -1
+                        # print("Invalid sensors")
 
             for i in range(len(self.axes)):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
@@ -178,13 +187,14 @@ class mainProgram(object):
             "pitch": pitch,
             "axes": self.axes,
             "buttons": self.buttons,
+            "float":self.float
         }
         # print(controlData)
         # if self.depthvalue != 0:
         #     controlData["heave"] = self.depthvalue
 
         if USE_SOCKET:
-            # print(controlData)
+            print(controlData)
             controlData = parseinput.parse(controlData, self.MAX_POWER)
 
             self.curMessage = controlData
