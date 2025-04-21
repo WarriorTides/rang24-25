@@ -4,89 +4,150 @@
 #include <ArduinoOTA.h>
 #include "MS5837.h"
 
-// Pin definitions
 #define IN1_PIN D6
 #define IN2_PIN D4
 
 MS5837 sensor;
 
-// ESP-NOW peer MAC address
+// Topside Mac Adress
 uint8_t broadcastAddress[] = {0xE8, 0x06, 0x90, 0x73, 0x79, 0x1C};
 
-// AP credentials
+// AP Mode credentials- For OTA
 const char *apSSID = "ESP_Float";
 const char *apPassword = "float1234";
 
-// Control variables
-const long interval = 5000;
-unsigned expandtime = 18000;
-long waitTime = 0;
-unsigned long previousMillisFloat = 0;
+// Profiling logic variables
+const long interval = 5000;  // reading interval in milliseconds
+unsigned expandtime = 18000; // time to expand the float in milliseconds
+long waitTime = 0;           // time to wait before next action in milliseconds
+
+unsigned long lastFloatAction = 0;
+unsigned long lastSampleTime = 0;
 bool floatIsStopped = true;
 char nextCommand = 's';
 int datacount = 0;
 int datasendindex = 0;
-unsigned long previousMillis = 0;
 
-// Message structures
-typedef struct control_message
+// Data storage
+int pressureReadings[150];
+int depthReadings[150];
+int timeReadings[150];
+
+// ESP now requires a structure for sending and receiving data
+
+struct control_message
 {
     char c;
     int val;
-} control_message;
-
-typedef struct send_message
+};
+struct send_message
 {
     int p;
     int d;
     int t;
-} send_message;
+};
 
 control_message ControlData;
-send_message sendReadings;
+send_message SendData;
 
-int preassurReadings[150];
-int timeReadings[150];
-int depthReadings[150];
-
-// ESP-NOW Send Callback
-void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
+void setup()
 {
-    Serial.print("Last Packet Send Status: ");
-    if (sendStatus == 0)
+    Serial.begin(115200);
+    pinMode(IN1_PIN, OUTPUT);
+    pinMode(IN2_PIN, OUTPUT);
+    stopMotor();
+    Wire.begin();
+
+    while (!sensor.init())
     {
-        Serial.println("Delivery success");
-        if (datacount >= datasendindex)
-        {
-            espNOWSend(datasendindex);
-        }
-        else
-        {
-            datacount = 0;
-        }
+        Serial.println("Sensor init failed. Check connections.");
+        delay(5000);
     }
-    else
+    sensor.setModel(MS5837::MS5837_02BA);
+    sensor.setFluidDensity(997);
+
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.softAP(apSSID, apPassword);
+    Serial.print("AP IP Address: ");
+    Serial.println(WiFi.softAPIP());
+
+    setupOTA();
+    setupESPNOW();
+}
+
+void loop()
+{
+    ArduinoOTA.handle(); // chilling here to check for OTA updates
+    unsigned long now = millis();
+
+    if (!floatIsStopped && now - lastFloatAction >= expandtime) // Check if the float has expanded for the required time
     {
-        Serial.println("Delivery fail");
-        datasendindex = 0;
+        stopMotor();
+    }
+
+    if (now - lastFloatAction >= waitTime + expandtime)
+    {
+        handleNextCommand();
+    }
+
+    if (now - lastSampleTime >= interval)
+    {
+        lastSampleTime = now;
+        collectData();
+        sendDataESPNow();
     }
 }
 
-// ESP-NOW Receive Callback
-void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
+void setupOTA()
 {
-    memcpy(&ControlData, incomingData, sizeof(ControlData));
-    Serial.printf("Bytes received: %d\n", len);
-    Serial.printf("Command: %c, Time: %d\n", ControlData.c, ControlData.val);
+    ArduinoOTA.setHostname("float-module");
+    ArduinoOTA.onStart([]()
+                       { Serial.println("Starting OTA..."); });
+    ArduinoOTA.onEnd([]()
+                     { Serial.println("OTA Complete."); });
+    ArduinoOTA.onProgress([](unsigned int p, unsigned int t)
+                          { Serial.printf("OTA Progress: %u%%\r", (p * 100) / t); });
+    ArduinoOTA.onError([](ota_error_t err)
+                       { Serial.printf("OTA Error [%u]\n", err); });
+    ArduinoOTA.begin();
+    Serial.println("OTA Ready");
+}
+
+void setupESPNOW()
+{
+    if (esp_now_init() != 0)
+    {
+        Serial.println("ESP-NOW init failed");
+        return;
+    }
+    esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+    esp_now_register_send_cb(onDataSent);
+    esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+    esp_now_register_recv_cb(onDataReceived);
+    Serial.println("ESP-NOW ready");
+}
+
+void onDataSent(uint8_t *mac, uint8_t status)
+{
+    Serial.print("Send Status: ");
+    Serial.println(status == 0 ? "Success" : "Fail");
+    if (datacount >= datasendindex)
+        espNOWSend(datasendindex);
+    else
+        datacount = 0;
+}
+
+void onDataReceived(uint8_t *mac, uint8_t *data, uint8_t len)
+{
+    memcpy(&ControlData, data, sizeof(ControlData));
+    Serial.printf("Received: %c, %d\n", ControlData.c, ControlData.val);
 
     if (ControlData.c == 't')
-    {
         expandtime = ControlData.val;
-    }
     else
     {
         waitTime = ControlData.val;
-        previousMillisFloat = millis();
+        lastFloatAction = millis();
     }
 
     if (ControlData.c == 'f')
@@ -101,144 +162,67 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
     }
     else if (ControlData.c == 's')
     {
-        stop();
+        stopMotor();
         nextCommand = 's';
     }
 }
 
-void setup()
+void handleNextCommand()
 {
-    Serial.begin(115200);
-    pinMode(IN1_PIN, OUTPUT);
-    pinMode(IN2_PIN, OUTPUT);
-    stop();
-    Wire.begin();
-
-    // Initialize sensor
-    while (!sensor.init())
-    {
-        Serial.println("Init failed! Check SDA/SCL wiring.");
-        delay(5000);
-    }
-
-    sensor.setModel(MS5837::MS5837_02BA);
-    sensor.setFluidDensity(997); // freshwater
-
-    // Setup Access Point
-    WiFi.mode(WIFI_AP_STA);
-    WiFi.softAP(apSSID, apPassword);
-    delay(1000);
-    Serial.print("Access Point IP: ");
-    Serial.println(WiFi.softAPIP());
-
-    // Init ESP-NOW
-    if (esp_now_init() != 0)
-    {
-        Serial.println("Error initializing ESP-NOW");
-        return;
-    }
-
-    esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
-    esp_now_register_send_cb(OnDataSent);
-    esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
-    esp_now_register_recv_cb(OnDataRecv);
-
-    // OTA Setup
-    ArduinoOTA.setHostname("float-module");
-    ArduinoOTA.onStart([]()
-                       { Serial.println("Start updating firmware..."); });
-    ArduinoOTA.onEnd([]()
-                     { Serial.println("\nUpdate complete."); });
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
-                          { Serial.printf("Progress: %u%%\r", (progress / (total / 100))); });
-    ArduinoOTA.onError([](ota_error_t error)
-                       {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed"); });
-    ArduinoOTA.begin();
-    Serial.println("OTA Ready. Connect to 'ESP_Float' and upload via network port.");
+    if (nextCommand == 'f')
+        forward();
+    else if (nextCommand == 'b')
+        back();
+    else
+        stopMotor();
+    lastFloatAction = millis();
+    nextCommand = 's';
 }
 
-void loop()
+void collectData()
 {
-    ArduinoOTA.handle(); // OTA loop
-
-    unsigned long currentMillis = millis();
-
-    if (currentMillis - previousMillisFloat >= expandtime && !floatIsStopped)
+    sensor.read();
+    if (datacount < 150)
     {
-        stop();
-    }
-
-    if (currentMillis - previousMillisFloat >= (waitTime + expandtime))
-    {
-        if (nextCommand == 'f')
-        {
-            forward();
-            previousMillisFloat = millis();
-        }
-        else if (nextCommand == 'b')
-        {
-            back();
-            previousMillisFloat = millis();
-        }
-        else if (nextCommand == 's')
-        {
-            stop();
-        }
-        nextCommand = 's';
-    }
-
-    if (currentMillis - previousMillis >= interval)
-    {
-        previousMillis = currentMillis;
-        sensor.read();
-        preassurReadings[datacount] = int(round(sensor.pressure() * 100));
-        depthReadings[datacount] = int(round(sensor.depth() * 100));
-        timeReadings[datacount] = int(round(millis() / 100));
+        pressureReadings[datacount] = (int)(sensor.pressure() * 100);
+        depthReadings[datacount] = (int)(sensor.depth() * 100);
+        timeReadings[datacount] = millis() / 100;
         datacount++;
-
-        espNOWSend(0);
     }
 }
 
-void stop()
+void sendDataESPNow()
 {
-    if (!floatIsStopped)
-    {
-        Serial.println("Stopping motor...");
-        digitalWrite(IN1_PIN, LOW);
-        digitalWrite(IN2_PIN, LOW);
-        floatIsStopped = true;
-    }
-}
-
-void back()
-{
-    Serial.println("Moving backward...");
-    floatIsStopped = false;
-    digitalWrite(IN1_PIN, LOW);
-    digitalWrite(IN2_PIN, HIGH);
+    SendData.p = pressureReadings[datasendindex];
+    SendData.d = depthReadings[datasendindex];
+    SendData.t = timeReadings[datasendindex];
+    datasendindex++;
+    esp_now_send(broadcastAddress, (uint8_t *)&SendData, sizeof(SendData));
 }
 
 void forward()
 {
-    Serial.println("Moving forward...");
+    Serial.println("Motor forward");
     floatIsStopped = false;
     digitalWrite(IN1_PIN, HIGH);
     digitalWrite(IN2_PIN, LOW);
 }
 
-void espNOWSend(int index)
+void back()
 {
-    sendReadings.p = preassurReadings[index];
-    sendReadings.d = depthReadings[index];
-    sendReadings.t = timeReadings[index];
-    datasendindex++;
-    Serial.printf("Sending index %d of %d | Depth: %.2f\n", index, datacount, depthReadings[index] / 100.0);
-    esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
+    Serial.println("Motor backward");
+    floatIsStopped = false;
+    digitalWrite(IN1_PIN, LOW);
+    digitalWrite(IN2_PIN, HIGH);
+}
+
+void stopMotor()
+{
+    if (!floatIsStopped)
+    {
+        Serial.println("Motor stopped");
+        digitalWrite(IN1_PIN, LOW);
+        digitalWrite(IN2_PIN, LOW);
+        floatIsStopped = true;
+    }
 }
