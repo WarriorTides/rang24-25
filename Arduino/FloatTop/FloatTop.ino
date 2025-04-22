@@ -2,7 +2,7 @@
 #include <esp_now.h>
 
 // REPLACE WITH THE MAC Address of your receiver
-uint8_t broadcastAddress[] = {0xCC, 0x50, 0xE3, 0x5A, 0xE1, 0xFE};
+uint8_t broadcastAddress[] = {0xCE, 0x50, 0xE3, 0x5A, 0xDF, 0xE7};
 
 String input = "";
 
