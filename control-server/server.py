@@ -88,7 +88,7 @@ def handle_potentiometer_message(data):
 
 @socketio.on("sensors")
 def handle_sensors(data):
-    # print("received message: sensors " + str(data))
+    print("received message: sensors " + str(data))
 
     emit("sensors", str(data), broadcast=True)
 
