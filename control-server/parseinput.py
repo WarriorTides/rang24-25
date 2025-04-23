@@ -12,8 +12,9 @@ mapping = sorted(mapping, key=lambda x: x["index"])
 
 servoangles = [0] * len(servo_controlers)
 lastbuttons = [0] * len(servo_controlers)
-
+wristState = [0,0]
 flipped=False
+
 for i in range(len(servo_controlers)):
     servoangles[i] = servo_controlers[i]["angles"][0]
 
@@ -93,11 +94,14 @@ def parse(controlData, MAX_POWER):
                     servoangles[i] = servo["angles"][cur_angle_index]
                 lastbuttons[i] = cur_button
 
-    # if(flip>0): 
-    controlString += "," + str(servoangles[0]) + ",67,160" #+ str(servoangles[1]) +"," + str(servo_controlers[3]["angles"][0]) +"," + str(servo_controlers[2]["angles"][0] )
-    # else:
+    if(flip>0): 
+        controlString += "," + str(servoangles[0])  +"," + str(servoangles[1]) +"," + str(servo_controlers[2]["angles"][0]) +"," + str(servo_controlers[3]["angles"][0] )
+        #not flipped
+        wristState[1]=0
+    else:
     
-        # controlString +="," + str(servo_controlers[0]["angles"][0]) +"," + str(servo_controlers[1]["angles"][0]) + "," + str(servoangles[3]) + "," + str(servoangles[2])
+        controlString +="," + str(servo_controlers[0]["angles"][0]) +"," + str(servo_controlers[1]["angles"][0]) + "," + str(servoangles[2]) + "," + str(servoangles[3])
+        wristState[0]=0
     controlString += "," + str(controlData["f1"]) + "," + str(controlData["f2"])
     print(controlString)
     return controlString
